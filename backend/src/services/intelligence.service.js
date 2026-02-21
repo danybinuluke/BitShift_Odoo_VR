@@ -50,7 +50,7 @@ export const calculateFleetRisk = async () => {
 // 2. Smart Assignment Engine (AI + Logic)
 // ===============================
 export const recommendAssignment =
-    async (vehicleId, driverId, cargoWeight) => {
+    async (vehicleId, driverId, cargoWeight, fatigueLevel) => {
 
         // Fetch vehicle and driver
         const vehicle =
@@ -91,8 +91,8 @@ export const recommendAssignment =
                     },
                     body: JSON.stringify({
                         safetyScore: driver.safetyScore,
-                        tripsCompleted: 100,
-                        fatigueLevel: 2
+                        tripsCompleted: driver.tripsCompleted || 23,
+                        fatigueLevel: fatigueLevel
                     }),
                     signal: controller.signal
                 }
@@ -118,19 +118,31 @@ export const recommendAssignment =
         // Logic-Based Scoring
         // ===============================
 
+        // Capacity score (how suitable vehicle is for cargo)
         const capacityScore =
             1 - (cargoWeight / vehicle.capacity);
 
+        // Base safety score from driver record
         const safetyScore =
             driver.safetyScore / 100;
 
+        // Fatigue penalty (NEW LOGIC)
+        const fatiguePenalty =
+            (fatigueLevel || 0) * 0.02;
+
+        // Adjust safety score based on fatigue
+        const adjustedSafetyScore =
+            Math.max(0, safetyScore - fatiguePenalty);
+
+        // Vehicle availability penalty
         const availabilityPenalty =
             vehicle.status === "OnTrip" ? 0.2 : 0;
 
+        // Final base score using adjusted safety score
         const baseScore =
             (0.6 * capacityScore)
             +
-            (0.4 * safetyScore);
+            (0.4 * adjustedSafetyScore);
 
         let finalScore =
             baseScore - availabilityPenalty;
@@ -323,4 +335,43 @@ export const getProfitTrend = async () => {
     });
 
     return trend;
+};
+
+// ===============================
+// Cost Per KM Intelligence
+// ===============================
+export const getCostPerKm = async (vehicleId) => {
+
+    const lastTrip = await prisma.trip.findFirst({
+        where: {
+            vehicleId: vehicleId,
+            status: "Completed"
+        },
+        orderBy: {
+            id: "desc"
+        }
+    });
+
+    if (!lastTrip)
+        throw new Error("No completed trips found");
+
+    const totalCost =
+        lastTrip.fuelCost +
+        lastTrip.maintenanceCost;
+
+    const costPerKm =
+        lastTrip.distance === 0
+            ? 0
+            : totalCost / lastTrip.distance;
+
+    return {
+        vehicleId,
+        tripId: lastTrip.id,
+        distance: lastTrip.distance,
+        fuelCost: lastTrip.fuelCost,
+        maintenanceCost: lastTrip.maintenanceCost,
+        totalCost,
+        costPerKm: Number(costPerKm.toFixed(2))
+    };
+
 };
