@@ -32,10 +32,10 @@ export default function NewVehiclePage() {
                 model,
                 licensePlate,
                 year,
-                mileage,
+                odometer: mileage,
                 fuelType,
                 type,
-                capacity
+                capacity: parseInt(capacity) || 0
             });
             // Redirect back to vehicles list on success
             router.push("/vehicles");
@@ -98,11 +98,12 @@ export default function NewVehiclePage() {
                                 <label className={labelClass}>Max Payload (Capacity)</label>
                                 <div className="relative">
                                     <input
-                                        type="text"
+                                        type="number"
                                         required
+                                        min="0"
                                         value={capacity}
                                         onChange={(e) => setCapacity(e.target.value)}
-                                        placeholder="e.g. 5 tons"
+                                        placeholder="e.g. 5000"
                                         className={inputClass}
                                     />
                                     <Package className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

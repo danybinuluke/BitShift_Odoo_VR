@@ -63,10 +63,10 @@ export default function DriversPage() {
     }
 
     // ── Table ───────────────────────────────────────────
-    const headers = ["ID", "Name", "License Number", "Experience (yrs)", "Rating", "Status"];
+    const headers = ["Index", "Name", "License Number", "Exp (Yrs)", "Rating", "Status"];
 
-    const rows = filtered.map((d: any) => [
-        d.id,
+    const rows = filtered.map((d: any, index: number) => [
+        <span key={`no-${d.id}`} className="text-gray-500 font-medium">{index + 1}</span>,
         <div key={`name-${d.id}`} className="font-medium text-gray-900">{d.name || "—"}</div>,
         d.licenseNumber || d.license || "—",
         d.experience != null ? d.experience : "—",
@@ -84,7 +84,7 @@ export default function DriversPage() {
                 {/* Header Row */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900">Drivers Registry</h1>
+                        <h1 className="text-xl font-bold text-gray-900">Driver Management</h1>
                         <p className="text-sm text-gray-500 mt-1">
                             {loading ? (
                                 "Loading..."

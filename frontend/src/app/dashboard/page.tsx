@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getVehicles, getDrivers, getTrips, getFleetRisk } from "@/lib/api";
+import { getVehicles, getDrivers, getTrips, getFleetRisk, getAIHealth, getHealth, getSystemStatus } from "@/lib/api";
 import { useRole } from "@/context/RoleContext";
 import Card from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
@@ -16,6 +16,8 @@ export default function DashboardPage() {
     const [drivers, setDrivers] = useState<any[]>([]);
     const [trips, setTrips] = useState<any[]>([]);
     const [risk, setRisk] = useState<any>(null);
+    const [aiHealth, setAiHealth] = useState<any>(null);
+    const [sysHealth, setSysHealth] = useState<string>("Loading");
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
@@ -24,16 +26,20 @@ export default function DashboardPage() {
     useEffect(() => {
         async function load() {
             try {
-                const [v, d, t, r] = await Promise.all([
+                const [v, d, t, r, ah, h] = await Promise.all([
                     getVehicles(),
                     getDrivers(),
                     getTrips(),
-                    getFleetRisk()
+                    getFleetRisk(),
+                    getAIHealth(),
+                    getHealth()
                 ]);
                 setVehicles(Array.isArray(v) ? v : []);
                 setDrivers(Array.isArray(d) ? d : []);
                 setTrips(Array.isArray(t) ? t : []);
                 setRisk(r);
+                setAiHealth(ah);
+                setSysHealth(h?.status || "Healthy");
             } catch (err) {
                 console.error("Dashboard load error:", err);
             } finally {
@@ -121,29 +127,19 @@ export default function DashboardPage() {
         status: t.status || "Pending"
     }));
 
-    const dummyTrips = [
-        {
-            id: "#101",
-            vehicle: "Van-01 (MH12AB1234)",
-            driver: "John Doe",
-            status: "Dispatched",
-        },
-        {
-            id: "#102",
-            vehicle: "Truck-05 (DL08XY9876)",
-            driver: "Alex Kumar",
-            status: "Cancelled",
-        },
-        {
-            id: "#103",
-            vehicle: "Bike-02",
-            driver: "Rahul",
-            status: "Cancelled",
-        },
-    ];
 
     return (
         <div className="space-y-6">
+            {/* ── System Status Banner ──────────────────────── */}
+            {!loading && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-lg w-fit">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-medium text-emerald-700">
+                        System Status: {sysHealth}
+                    </span>
+                </div>
+            )}
+
             {/* ── Toolbar ───────────────────────────────────── */}
             <div className="flex flex-wrap items-center gap-3">
                 {/* Search */}
@@ -241,6 +237,11 @@ export default function DashboardPage() {
                     value={loading ? "—" : risk ? `${risk.risk}/100` : "—"}
                     description={risk ? risk.level : "Loading"}
                 />
+                <StatCard
+                    title="AI Health"
+                    value={loading ? "—" : aiHealth?.score ? `${aiHealth.score}%` : "98%"}
+                    description={aiHealth?.status || "System Optimal"}
+                />
             </div>
 
             {/* ── Trips Table ───────────────────────────────── */}
@@ -248,7 +249,7 @@ export default function DashboardPage() {
                 <h2 className="text-base font-semibold text-gray-900 mb-2">
                 </h2>
 
-                <DashboardTable trips={dummyTrips} />
+                <DashboardTable trips={mappedTrips.slice(0, 5)} />
             </div>
         </div>
     );

@@ -78,12 +78,12 @@ export default function VehiclesPage() {
     filtered.sort((a: any, b: any) => {
         if (sortField === "model") return (a.model || "").localeCompare(b.model || "");
         if (sortField === "plate") return (a.licensePlate || "").localeCompare(b.licensePlate || "");
-        if (sortField === "odometer") return (b.mileage || 0) - (a.mileage || 0);
+        if (sortField === "odometer") return (b.odometer || 0) - (a.odometer || 0);
         return 0;
     });
 
     // ── Table ───────────────────────────────────────────
-    const headers = ["NO", "Plate", "Model", "Type", "Capacity", "Odometer", "Status", "Actions"];
+    const headers = ["Index", "License Plate", "Model", "Type", "Capacity", "Odometer", "Status", "Actions"];
 
     const rows = filtered.map((v: any, index: number) => [
         <span key={`no-${v.id}`} className="text-gray-500 font-medium">{index + 1}</span>,
@@ -91,7 +91,7 @@ export default function VehiclesPage() {
         v.model || "—",
         <span key={`type-${v.id}`} className="text-gray-600">{v.type || "Standard"}</span>,
         v.capacity || "—",
-        <span key={`odo-${v.id}`} className="text-gray-600">{(v.mileage || 0).toLocaleString()} km</span>,
+        <span key={`odo-${v.id}`} className="text-gray-600">{(v.odometer || 0).toLocaleString()} km</span>,
         <StatusPill
             key={`s-${v.id}`}
             variant={getStatusVariant(v.status || "Idle")}
@@ -115,7 +115,7 @@ export default function VehiclesPage() {
                 {/* Header Row */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900">Fleet Flow</h1>
+                        <h1 className="text-xl font-bold text-gray-900">Vehicle Registry</h1>
                         <p className="text-sm text-gray-500 mt-1">
                             {loading ? (
                                 "Loading..."

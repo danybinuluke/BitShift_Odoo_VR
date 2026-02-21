@@ -15,7 +15,6 @@ export const permissions: Record<
         canAddDriver: boolean;
         canDispatch: boolean;
         canAddMaintenance: boolean;
-        canViewExpenses: boolean;
         canViewAnalytics: boolean;
     }
 > = {
@@ -24,7 +23,6 @@ export const permissions: Record<
         canAddDriver: true,
         canDispatch: true,
         canAddMaintenance: true,
-        canViewExpenses: true,
         canViewAnalytics: true,
     },
     Dispatcher: {
@@ -32,7 +30,6 @@ export const permissions: Record<
         canAddDriver: false,
         canDispatch: true,
         canAddMaintenance: false,
-        canViewExpenses: false,
         canViewAnalytics: false,
     },
     Safety: {
@@ -40,7 +37,6 @@ export const permissions: Record<
         canAddDriver: false,
         canDispatch: false,
         canAddMaintenance: true,
-        canViewExpenses: false,
         canViewAnalytics: true,
     },
     Financial: {
@@ -48,7 +44,6 @@ export const permissions: Record<
         canAddDriver: false,
         canDispatch: false,
         canAddMaintenance: false,
-        canViewExpenses: true,
         canViewAnalytics: true,
     },
 };
@@ -66,7 +61,6 @@ export const sidebarItems: SidebarItem[] = [
     { label: "Drivers", path: "/drivers", roles: ["Manager", "Dispatcher", "Safety"] },
     { label: "Dispatcher", path: "/dispatcher", roles: ["Manager", "Dispatcher"] },
     { label: "Maintenance", path: "/maintenance", roles: ["Manager", "Safety"] },
-    { label: "Expenses", path: "/expenses", roles: ["Manager", "Financial"] },
     { label: "Analytics", path: "/analytics", roles: ["Manager", "Safety", "Financial"] },
 ];
 
