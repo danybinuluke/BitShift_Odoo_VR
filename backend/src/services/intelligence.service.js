@@ -24,8 +24,9 @@ export const calculateFleetRisk = async () => {
         await prisma.vehicle.count();
 
     const riskScore =
-        vehiclesInShop * 5
-        + expiredDrivers * 10;
+        (vehiclesInShop * 5)
+        +
+        (expiredDrivers * 10);
 
     let riskLevel = "Low";
 
@@ -46,11 +47,12 @@ export const calculateFleetRisk = async () => {
 
 
 // ===============================
-// 2. Smart Assignment Engine
+// 2. Smart Assignment Engine (AI + Logic)
 // ===============================
 export const recommendAssignment =
     async (vehicleId, driverId, cargoWeight) => {
 
+        // Fetch vehicle and driver
         const vehicle =
             await prisma.vehicle.findUnique({
                 where: { id: vehicleId }
@@ -65,26 +67,56 @@ export const recommendAssignment =
             throw new Error("Vehicle or Driver not found");
 
 
-        // Call AI service
-        const aiResponse = await fetch(
-            "https://fleetflow-ai.onrender.com/predict-driver-risk",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    safetyScore: driver.safetyScore,
-                    tripsCompleted: 100,
-                    fatigueLevel: 2
-                })
+        // ===============================
+        // AI Risk Prediction
+        // ===============================
+        const AI_URL =
+            process.env.AI_SERVICE_URL ||
+            "https://fleetflow-ai.onrender.com";
+
+        let aiRiskLevel = "MEDIUM"; // fallback default
+
+        try {
+
+            const controller = new AbortController();
+            const timeout =
+                setTimeout(() => controller.abort(), 5000);
+
+            const aiResponse = await fetch(
+                `${AI_URL}/predict-driver-risk`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        safetyScore: driver.safetyScore,
+                        tripsCompleted: 100,
+                        fatigueLevel: 2
+                    }),
+                    signal: controller.signal
+                }
+            );
+
+            clearTimeout(timeout);
+
+            if (aiResponse.ok) {
+                const aiResult = await aiResponse.json();
+                aiRiskLevel = aiResult.riskLevel;
             }
-        );
 
-        const aiResult = await aiResponse.json();
+        } catch (error) {
 
-        const aiRiskLevel = aiResult.riskLevel;
+            console.warn(
+                "AI service unavailable, using fallback logic"
+            );
 
+        }
+
+
+        // ===============================
+        // Logic-Based Scoring
+        // ===============================
 
         const capacityScore =
             1 - (cargoWeight / vehicle.capacity);
@@ -92,18 +124,35 @@ export const recommendAssignment =
         const safetyScore =
             driver.safetyScore / 100;
 
+        const availabilityPenalty =
+            vehicle.status === "OnTrip" ? 0.2 : 0;
+
         const baseScore =
-            (0.6 * capacityScore) +
+            (0.6 * capacityScore)
+            +
             (0.4 * safetyScore);
 
+        let finalScore =
+            baseScore - availabilityPenalty;
 
-        let finalScore = baseScore;
+
+        // ===============================
+        // AI Risk Adjustment
+        // ===============================
 
         if (aiRiskLevel === "HIGH")
             finalScore -= 0.3;
         else if (aiRiskLevel === "MEDIUM")
             finalScore -= 0.1;
 
+
+        // Prevent negative score
+        finalScore = Math.max(0, finalScore);
+
+
+        // ===============================
+        // Recommendation Decision
+        // ===============================
 
         let recommendation = "Risky";
 
@@ -117,7 +166,9 @@ export const recommendAssignment =
             intelligenceScore:
                 Number(finalScore.toFixed(2)),
             recommendation,
-            aiRiskLevel
+            aiRiskLevel,
+            vehicleStatus: vehicle.status,
+            driverSafetyScore: driver.safetyScore
         };
     };
 
@@ -191,12 +242,10 @@ export const getProfitMetrics = async () => {
             : (profit / totalRevenue) * 100;
 
     return {
-
         totalRevenue,
         totalCost,
         profit,
         profitMargin:
             Number(profitMargin.toFixed(2))
-
     };
 };
