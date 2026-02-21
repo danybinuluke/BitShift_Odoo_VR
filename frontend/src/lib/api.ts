@@ -14,6 +14,8 @@ export async function createVehicle(data: {
   year: number;
   mileage: number;
   fuelType: string;
+  type?: string;
+  capacity?: string;
 }) {
   const res = await fetch(`${BASE_URL}/vehicles`, {
     method: "POST",
@@ -24,11 +26,35 @@ export async function createVehicle(data: {
   return res.json();
 }
 
+export async function deleteVehicle(id: number) {
+  const res = await fetch(`${BASE_URL}/vehicles/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete vehicle");
+  return res.json();
+}
+
 // ─── Drivers ─────────────────────────────────────────
 
 export async function getDrivers() {
   const res = await fetch(`${BASE_URL}/drivers`);
   if (!res.ok) throw new Error("Failed to fetch drivers");
+  return res.json();
+}
+
+export async function createDriver(data: {
+  name: string;
+  licenseNumber: string;
+  licenseExpiryDate?: string;
+  experience?: number;
+  phone?: string;
+}) {
+  const res = await fetch(`${BASE_URL}/drivers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create driver");
   return res.json();
 }
 

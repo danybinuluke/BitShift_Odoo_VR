@@ -13,6 +13,14 @@ import intelligenceRoutes from "./routes/intelligence.routes.js";
 dotenv.config();
 
 const app = express();
+app.get("/", (req, res) => {
+    res.json({
+        service: "FleetFlow Backend",
+        status: "Production Running",
+        ai: "Connected",
+        version: "1.0"
+    });
+});
 
 app.use(cors());
 app.use(express.json());

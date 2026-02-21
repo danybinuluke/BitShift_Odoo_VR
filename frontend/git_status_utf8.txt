@@ -1,0 +1,43 @@
+On branch main
+Your branch and 'origin/main' have diverged,
+and have 1 and 6 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Changes to be committed:
+	new file:   backend/.gitignore
+	new file:   backend/package-lock.json
+	new file:   backend/package.json
+	new file:   backend/prisma.config.ts
+	new file:   backend/prisma/migrations/20260221054803_init/migration.sql
+	new file:   backend/prisma/migrations/migration_lock.toml
+	new file:   backend/prisma/schema.prisma
+	new file:   backend/src/controllers/auth.controller.js
+	new file:   backend/src/controllers/driver.controller.js
+	new file:   backend/src/controllers/maintenance.routes.js
+	new file:   backend/src/controllers/trip.controller.js
+	new file:   backend/src/controllers/vehicle.controller.js
+	new file:   backend/src/middleware/auth.middleware.js
+	new file:   backend/src/routes/auth.routes.js
+	new file:   backend/src/routes/driver.routes.js
+	new file:   backend/src/routes/intelligence.routes.js
+	new file:   backend/src/routes/maintenance.routes.js
+	new file:   backend/src/routes/trip.routes.js
+	new file:   backend/src/routes/vehicle.routes.js
+	new file:   backend/src/server.js
+	new file:   frontend/src/components/dashboard/DashboardTable.tsx
+	modified:   frontend/src/lib/api.ts
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+	both modified:   frontend/package-lock.json
+	both modified:   frontend/package.json
+	both modified:   frontend/src/app/dashboard/page.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	frontend/git_status.txt
+

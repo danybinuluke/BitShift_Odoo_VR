@@ -94,7 +94,7 @@ export default function ExpensesPage() {
     ]);
 
     return (
-        <AccessControl allowedRoles={["Financial"]}>
+        <AccessControl allowedRoles={["Manager", "Financial"]}>
             <div className="space-y-6">
                 {/* Add Expense Form */}
                 <Card>

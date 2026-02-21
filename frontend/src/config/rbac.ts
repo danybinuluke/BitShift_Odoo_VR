@@ -12,6 +12,7 @@ export const permissions: Record<
     Role,
     {
         canAddVehicle: boolean;
+        canAddDriver: boolean;
         canDispatch: boolean;
         canAddMaintenance: boolean;
         canViewExpenses: boolean;
@@ -20,13 +21,15 @@ export const permissions: Record<
 > = {
     Manager: {
         canAddVehicle: true,
-        canDispatch: false,
+        canAddDriver: true,
+        canDispatch: true,
         canAddMaintenance: true,
         canViewExpenses: true,
         canViewAnalytics: true,
     },
     Dispatcher: {
         canAddVehicle: false,
+        canAddDriver: false,
         canDispatch: true,
         canAddMaintenance: false,
         canViewExpenses: false,
@@ -34,13 +37,15 @@ export const permissions: Record<
     },
     Safety: {
         canAddVehicle: false,
+        canAddDriver: false,
         canDispatch: false,
-        canAddMaintenance: false,
+        canAddMaintenance: true,
         canViewExpenses: false,
         canViewAnalytics: true,
     },
     Financial: {
         canAddVehicle: false,
+        canAddDriver: false,
         canDispatch: false,
         canAddMaintenance: false,
         canViewExpenses: true,
@@ -59,10 +64,10 @@ export const sidebarItems: SidebarItem[] = [
     { label: "Dashboard", path: "/dashboard", roles: ["Manager", "Dispatcher", "Safety", "Financial"] },
     { label: "Vehicles", path: "/vehicles", roles: ["Manager", "Dispatcher", "Safety"] },
     { label: "Drivers", path: "/drivers", roles: ["Manager", "Dispatcher", "Safety"] },
-    { label: "Dispatcher", path: "/dispatcher", roles: ["Dispatcher"] },
-    { label: "Maintenance", path: "/maintenance", roles: ["Manager"] },
-    { label: "Expenses", path: "/expenses", roles: ["Financial"] },
-    { label: "Analytics", path: "/analytics", roles: ["Manager", "Financial"] },
+    { label: "Dispatcher", path: "/dispatcher", roles: ["Manager", "Dispatcher"] },
+    { label: "Maintenance", path: "/maintenance", roles: ["Manager", "Safety"] },
+    { label: "Expenses", path: "/expenses", roles: ["Manager", "Financial"] },
+    { label: "Analytics", path: "/analytics", roles: ["Manager", "Safety", "Financial"] },
 ];
 
 /* ── Helper: filter sidebar for a given role ───────────── */
