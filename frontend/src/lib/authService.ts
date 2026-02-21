@@ -5,14 +5,17 @@
  *     All auth state lives in localStorage.
  * ────────────────────────────────────────────────────── */
 
+import { login as apiLogin, register as apiRegister } from "./api";
 import type { Role } from "@/config/rbac";
 
 const STORAGE_KEY = "fleetflow_user";
+const TOKEN_KEY = "fleetflow_token";
 
 export interface AuthUser {
     name: string;
     email: string;
     role: Role;
+    token?: string;
 }
 
 /* ── Read ──────────────────────────────────────────────── */
@@ -30,41 +33,45 @@ export function getStoredUser(): AuthUser | null {
 /* ── Write ─────────────────────────────────────────────── */
 export function storeUser(user: AuthUser): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    if (user.token) {
+        localStorage.setItem(TOKEN_KEY, user.token);
+    }
 }
 
 /* ── Clear ─────────────────────────────────────────────── */
 export function clearUser(): void {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TOKEN_KEY);
 }
 
-/* ── Mock login ────────────────────────────────────────── */
-export async function mockLogin(email: string, _password: string): Promise<AuthUser> {
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 600));
+/* ── Login ─────────────────────────────────────────────── */
+export async function login(email: string, password: string): Promise<AuthUser> {
+    const response = await apiLogin({ email, password });
 
-    // In a real app: POST /api/auth/login
-    // For now, return a mock Manager user
+    // Assume response is { user: { name, email, role }, token }
     const user: AuthUser = {
-        name: email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-        email,
-        role: "Manager",
+        ...response.user,
+        token: response.token,
     };
+
     storeUser(user);
     return user;
 }
 
-/* ── Mock signup ───────────────────────────────────────── */
-export async function mockSignup(
+/* ── Signup ────────────────────────────────────────────── */
+export async function signup(
     name: string,
     email: string,
-    _password: string,
+    password: string,
     role: Role
 ): Promise<AuthUser> {
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 600));
+    const response = await apiRegister({ name, email, password, role });
 
-    // In a real app: POST /api/auth/signup
-    const user: AuthUser = { name, email, role };
+    const user: AuthUser = {
+        ...response.user,
+        token: response.token,
+    };
+
     storeUser(user);
     return user;
 }

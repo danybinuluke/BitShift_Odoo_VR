@@ -13,10 +13,9 @@ const pageTitles: Record<string, string> = {
     "/drivers": "Driver Management",
     "/dispatcher": "Trip Dispatcher",
     "/maintenance": "Maintenance Logs",
+    "/expenses": "Expense & Fuel Logging",
     "/analytics": "Operational Analytics",
 };
-
-const allRoles: Role[] = ["Manager", "Dispatcher", "Safety", "Financial"];
 
 export default function Topbar() {
     const pathname = usePathname();
@@ -42,23 +41,10 @@ export default function Topbar() {
                         <p className="text-sm font-medium text-gray-800 leading-tight">
                             {userName}
                         </p>
-                        <div className="flex items-center gap-1">
-                            <select
-                                value={role}
-                                onChange={(e) => setRole(e.target.value as Role)}
-                                className="text-xs text-gray-500 bg-transparent border-0 outline-none cursor-pointer p-0"
-                            >
-                                {allRoles.map((r) => (
-                                    <option key={r} value={r}>
-                                        {r}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <p className="text-xs text-gray-500">
+                            {role} Role
+                        </p>
                     </div>
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 border border-blue-100">
-                        {role}
-                    </span>
                 </div>
 
                 <div className="h-6 w-px bg-gray-200" />

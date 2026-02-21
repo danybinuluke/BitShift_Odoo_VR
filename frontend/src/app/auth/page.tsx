@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { mockLogin, mockSignup } from "@/lib/authService";
+import { login, signup } from "@/lib/authService";
 import type { Role } from "@/config/rbac";
 import {
     ArrowRight,
@@ -53,7 +53,7 @@ export default function AuthPage() {
         }
         setLoading(true);
         try {
-            await mockLogin(loginEmail, loginPassword);
+            await login(loginEmail, loginPassword);
             router.push("/dashboard");
         } catch {
             setError("Login failed. Please try again.");
@@ -79,7 +79,7 @@ export default function AuthPage() {
         }
         setLoading(true);
         try {
-            await mockSignup(signupName, signupEmail, signupPassword, signupRole);
+            await signup(signupName, signupEmail, signupPassword, signupRole);
             router.push("/dashboard");
         } catch {
             setError("Signup failed. Please try again.");

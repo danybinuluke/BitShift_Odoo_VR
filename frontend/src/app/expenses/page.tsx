@@ -3,30 +3,35 @@
 import React, { useEffect, useState } from "react";
 import { getExpenses, createExpense, getVehicles } from "@/lib/api";
 import Card from "@/components/ui/Card";
-import StatusPill from "@/components/ui/StatusPill";
+import StatCard from "@/components/ui/StatCard";
 import DataTable from "@/components/ui/DataTable";
+import StatusPill from "@/components/ui/StatusPill";
 import AccessControl from "@/components/AccessControl";
+import { Plus, Receipt, Fuel, Toolbox, MinusCircle, CheckCircle2 } from "lucide-react";
 
 export default function ExpensesPage() {
     const [expenses, setExpenses] = useState<any[]>([]);
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
+    const [showForm, setShowForm] = useState(false);
 
     // Form state
-    const [vehicleId, setVehicleId] = useState("");
-    const [category, setCategory] = useState("");
-    const [amount, setAmount] = useState("");
-    const [description, setDescription] = useState("");
-    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [form, setForm] = useState({
+        vehicleId: "",
+        category: "Fuel",
+        amount: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
+    });
 
     async function loadData() {
+        setLoading(true);
         try {
-            const [e, v] = await Promise.all([getExpenses(), getVehicles()]);
-            setExpenses(Array.isArray(e) ? e : []);
-            setVehicles(Array.isArray(v) ? v : []);
+            const [expData, vehData] = await Promise.all([getExpenses(), getVehicles()]);
+            setExpenses(Array.isArray(expData) ? expData : []);
+            setVehicles(Array.isArray(vehData) ? vehData : []);
         } catch (err) {
-            console.error("Failed to load expense data:", err);
+            console.error("Failed to load expenses:", err);
         } finally {
             setLoading(false);
         }
@@ -38,174 +43,215 @@ export default function ExpensesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!vehicleId || !category || !amount) return;
-
-        setSubmitting(true);
         try {
             await createExpense({
-                vehicleId: Number(vehicleId),
-                category,
-                amount: Number(amount),
-                description,
-                date,
+                vehicleId: Number(form.vehicleId),
+                category: form.category,
+                amount: Number(form.amount),
+                description: form.description,
+                date: form.date,
             });
-            // Reset form
-            setVehicleId("");
-            setCategory("");
-            setAmount("");
-            setDescription("");
-            setDate(new Date().toISOString().split("T")[0]);
-            // Reload
-            setLoading(true);
-            await loadData();
+            setShowForm(false);
+            setForm({
+                vehicleId: "",
+                category: "Fuel",
+                amount: "",
+                description: "",
+                date: new Date().toISOString().split("T")[0],
+            });
+            loadData();
         } catch (err) {
-            console.error("Failed to create expense:", err);
-        } finally {
-            setSubmitting(false);
+            alert("Failed to save expense. Please check your inputs.");
         }
     };
 
-    function vehicleName(id: number) {
-        const v = vehicles.find((veh: any) => veh.id === id);
-        return v ? `${v.model} ${v.licensePlate ? `(${v.licensePlate})` : `#${v.id}`}` : `#${id}`;
-    }
+    const totalExpense = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const fuelExpense = expenses.filter(e => e.category === "Fuel").reduce((sum, e) => sum + (e.amount || 0), 0);
+    const maintenanceExpense = expenses.filter(e => e.category === "Maintenance").reduce((sum, e) => sum + (e.amount || 0), 0);
 
-    function getCategoryVariant(cat: string) {
-        const s = cat?.toLowerCase();
-        if (s === "fuel" || s === "diesel" || s === "petrol") return "warning" as const;
-        if (s === "maintenance" || s === "repair") return "inShop" as const;
-        if (s === "toll" || s === "parking") return "onTrip" as const;
-        if (s === "insurance") return "available" as const;
-        return "available" as const;
-    }
+    const vehicleName = (id: number) => {
+        const v = vehicles.find((veh) => veh.id === id);
+        return v ? `${v.model} (${v.licensePlate})` : `#${id}`;
+    };
 
-    const headers = ["ID", "Vehicle", "Category", "Amount", "Description", "Date"];
-    const rows = expenses.map((exp: any) => [
-        exp.id,
-        vehicleName(exp.vehicleId),
-        <StatusPill
-            key={`c-${exp.id}`}
-            variant={getCategoryVariant(exp.category)}
-            label={exp.category || "—"}
-        />,
-        exp.amount != null ? `$${Number(exp.amount).toLocaleString()}` : "—",
-        exp.description || "—",
-        exp.date || "—",
+    const headers = ["Index", "Vehicle", "Category", "Description", "Date", "Amount"];
+    const rows = expenses.map((exp, index) => [
+        <span key={`idx-${exp.id}`} className="text-gray-400 font-medium">{index + 1}</span>,
+        <span key={`veh-${exp.id}`} className="font-medium text-gray-900">{vehicleName(exp.vehicleId)}</span>,
+        <div key={`cat-${exp.id}`} className="flex items-center gap-1.5">
+            {exp.category === "Fuel" ? (
+                <Fuel className="w-3.5 h-3.5 text-orange-500" />
+            ) : (
+                <Toolbox className="w-3.5 h-3.5 text-blue-500" />
+            )}
+            <span className="text-sm font-medium">{exp.category}</span>
+        </div>,
+        <span key={`desc-${exp.id}`} className="text-gray-600 truncate max-w-[200px] block">{exp.description || "—"}</span>,
+        <span key={`date-${exp.id}`} className="text-gray-500 text-sm">{exp.date || "—"}</span>,
+        <span key={`amt-${exp.id}`} className="font-bold text-gray-900">₹ {(exp.amount || 0).toLocaleString()}</span>
     ]);
 
     return (
         <AccessControl allowedRoles={["Manager", "Financial"]}>
-            <div className="space-y-6">
-                {/* Add Expense Form */}
-                <Card>
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">
-                        Log Expense
-                    </h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
-                            <select
-                                value={vehicleId}
-                                onChange={(e) => setVehicleId(e.target.value)}
-                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200"
-                            >
-                                <option value="">Select vehicle</option>
-                                {vehicles.map((v: any) => (
-                                    <option key={v.id} value={v.id}>
-                                        {v.model} {v.licensePlate ? `(${v.licensePlate})` : `#${v.id}`}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+            <div className="space-y-8 pb-12">
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200"
-                            >
-                                <option value="">Select category</option>
-                                <option value="Fuel">Fuel</option>
-                                <option value="Maintenance">Maintenance</option>
-                                <option value="Repair">Repair</option>
-                                <option value="Toll">Toll</option>
-                                <option value="Insurance">Insurance</option>
-                                <option value="Parking">Parking</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
-                            <input
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="e.g. 150"
-                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                            <input
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200"
-                            />
-                        </div>
-
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <input
-                                type="text"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Brief description of expense"
-                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200"
-                            />
-                        </div>
-
-                        <div className="flex items-end">
-                            <button
-                                type="submit"
-                                disabled={!vehicleId || !category || !amount || submitting}
-                                className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                                {submitting ? "Saving..." : "Log Expense"}
-                            </button>
-                        </div>
-                    </form>
-                </Card>
-
-                {/* Expense Records Table */}
-                <Card className="p-0">
-                    <div className="px-6 pt-6 pb-2">
-                        <h2 className="text-base font-semibold text-gray-900">
-                            Expense Records
-                        </h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            {loading ? "Loading..." : `${expenses.length} records`}
-                        </p>
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Expense & Fuel Management</h1>
+                        <p className="text-sm text-gray-500 mt-1">Track operational costs and fuel consumption across the fleet</p>
                     </div>
-                    {loading ? (
-                        <div className="p-6">
-                            <div className="space-y-3">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="h-10 bg-gray-50 rounded" />
-                                ))}
+                    <button
+                        onClick={() => setShowForm(!showForm)}
+                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all shadow-sm ${showForm ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
+                            }`}
+                    >
+                        {showForm ? <Receipt className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        {showForm ? "View Logs" : "Record Expense"}
+                    </button>
+                </div>
+
+                {/* KPI Overview */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <StatCard
+                        title="Total Expenditure"
+                        value={`₹ ${totalExpense.toLocaleString()}`}
+                        description="Cumulative fleet costs"
+                        trend={{ value: 12, isPositive: false }}
+                    />
+                    <StatCard
+                        title="Fuel Costs"
+                        value={`₹ ${fuelExpense.toLocaleString()}`}
+                        description="Month-to-date fuel spend"
+                        color="orange"
+                    />
+                    <StatCard
+                        title="Maintenance Spend"
+                        value={`₹ ${maintenanceExpense.toLocaleString()}`}
+                        description="Repairs and servicing"
+                        color="blue"
+                    />
+                </div>
+
+                {/* Form or Table */}
+                {showForm ? (
+                    <Card className="max-w-2xl mx-auto border-dashed border-2 bg-gray-50/50">
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <Receipt className="w-5 h-5 text-blue-600" />
+                                Record New Operational Expense
+                            </h3>
+
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Vehicle</label>
+                                    <select
+                                        required
+                                        value={form.vehicleId}
+                                        onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
+                                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    >
+                                        <option value="">Select a vehicle</option>
+                                        {vehicles.map((v) => (
+                                            <option key={v.id} value={v.id}>
+                                                {v.model} - {v.licensePlate}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Category</label>
+                                    <select
+                                        value={form.category}
+                                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    >
+                                        <option value="Fuel">Fuel</option>
+                                        <option value="Maintenance">Maintenance</option>
+                                        <option value="Toll">Toll / Permits</option>
+                                        <option value="Insurance">Insurance</option>
+                                        <option value="Miscellaneous">Miscellaneous</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Amount (₹)</label>
+                                    <input
+                                        required
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={form.amount}
+                                        onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date</label>
+                                    <input
+                                        required
+                                        type="date"
+                                        value={form.date}
+                                        onChange={(e) => setForm({ ...form, date: e.target.value })}
+                                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    ) : expenses.length === 0 ? (
-                        <div className="px-6 pb-6">
-                            <p className="text-sm text-gray-400">No expense records found.</p>
-                        </div>
-                    ) : (
-                        <DataTable headers={headers} rows={rows} />
-                    )}
-                </Card>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Description</label>
+                                <textarea
+                                    required
+                                    placeholder="Enter details about the expense..."
+                                    value={form.description}
+                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                    rows={3}
+                                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowForm(false)}
+                                    className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-md hover:bg-blue-700 active:scale-95 transition-all"
+                                >
+                                    Save Record
+                                </button>
+                            </div>
+                        </form>
+                    </Card>
+                ) : (
+                    <Card className="p-0 overflow-hidden shadow-sm border-gray-200">
+                        {loading ? (
+                            <div className="p-12 text-center">
+                                <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+                                <p className="mt-4 text-sm text-gray-500 font-medium">Downloading operational logs...</p>
+                            </div>
+                        ) : expenses.length === 0 ? (
+                            <div className="p-20 text-center bg-gray-50/30">
+                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+                                    <MinusCircle className="w-6 h-6 text-gray-400" />
+                                </div>
+                                <p className="text-gray-900 font-semibold text-lg">No expenses found</p>
+                                <p className="text-gray-500 text-sm mt-1">Start by recording your first operational expense.</p>
+                                <button
+                                    onClick={() => setShowForm(true)}
+                                    className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Create First Entry
+                                </button>
+                            </div>
+                        ) : (
+                            <DataTable headers={headers} rows={rows} />
+                        )}
+                    </Card>
+                )}
             </div>
         </AccessControl>
     );

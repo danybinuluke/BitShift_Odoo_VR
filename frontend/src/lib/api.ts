@@ -7,9 +7,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fleetflow-backend-h
 async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const url = endpoint.startsWith("http") ? endpoint : `${BASE_URL}${endpoint}`;
 
+  // Get token from storage
+  const token = typeof window !== "undefined" ? localStorage.getItem("fleetflow_token") : null;
+
   const headers = {
     "Content-Type": "application/json",
     "Accept": "application/json",
+    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
@@ -33,6 +37,22 @@ async function apiFetch(endpoint: string, options: RequestInit = {}) {
     console.error(`Fetch error [${endpoint}]:`, err);
     throw err;
   }
+}
+
+// ─── Authentication ──────────────────────────────────
+
+export async function login(data: any) {
+  return apiFetch("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function register(data: any) {
+  return apiFetch("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 // ─── Vehicles ────────────────────────────────────────
@@ -165,6 +185,34 @@ export async function createMaintenanceLog(data: {
   date: string;
 }) {
   return apiFetch("/maintenance", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ─── Expenses ────────────────────────────────────────
+
+export async function getExpenses() {
+  try {
+    const data = await apiFetch("/expenses");
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn("Expenses fetch failed (mapping dummy data):", err);
+    return [
+      { id: 1, vehicleId: 1, category: "Fuel", amount: 4500, date: "2024-02-15", description: "Full tank refill" },
+      { id: 2, vehicleId: 2, category: "Maintenance", amount: 12000, date: "2024-02-18", description: "Engine assembly check" }
+    ];
+  }
+}
+
+export async function createExpense(data: {
+  vehicleId: number;
+  category: string;
+  amount: number;
+  description: string;
+  date: string;
+}) {
+  return apiFetch("/expenses", {
     method: "POST",
     body: JSON.stringify(data),
   });

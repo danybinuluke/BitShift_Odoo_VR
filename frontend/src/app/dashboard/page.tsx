@@ -120,33 +120,6 @@ export default function DashboardPage() {
 
     const uniqueStatuses = Array.from(new Set(trips.map((t: any) => t.status || "Pending")));
 
-    const mappedTrips = filtered.map((t: any) => ({
-        id: `#${t.id}`,
-        vehicle: vehicleMap[t.vehicleId] || `#${t.vehicleId}`,
-        driver: driverMap[t.driverId] || `#${t.driverId}`,
-        status: t.status || "Pending"
-    }));
-
-
-    const headers = ["Trip", "Vehicle", "Driver", "Status"];
-
-    const rows = dummyTrips.map((t) => [
-        t.id,
-        t.vehicle,
-        t.driver,
-        <StatusPill
-            key={t.id}
-            variant={
-                t.status.toLowerCase().includes("dispatch")
-                    ? "onTrip"
-                    : t.status.toLowerCase().includes("cancel")
-                        ? "danger"
-                        : "available"
-            }
-            label={t.status}
-        />
-    ]);
-
     return (
         <div className="space-y-6">
             {/* ── System Status Banner ──────────────────────── */}
@@ -269,11 +242,7 @@ export default function DashboardPage() {
                     Recent Trips
                 </h2>
 
-<<<<<<< HEAD
-                <DataTable headers={headers} rows={rows} />
-=======
-                <DashboardTable trips={mappedTrips.slice(0, 5)} />
->>>>>>> f39b62189c4957a33384b6d5e6d02b36e21ad9b6
+                <DataTable headers={tripHeaders} rows={tripRows} />
             </div>
         </div>
     );
