@@ -30,41 +30,58 @@ function getStatusStyles(status: string) {
 
 export default function DashboardTable({ trips }: Props) {
     return (
-        <div className="overflow-hidden rounded-xl border border-gray-200">
-            {/* Header */}
-            <div className="grid grid-cols-4 bg-gray-50 text-sm font-semibold text-gray-600">
-                <div className="border-r p-4">Trip</div>
-                <div className="border-r p-4">Vehicle</div>
-                <div className="border-r p-4">Driver</div>
-                <div className="p-4">Status</div>
-            </div>
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+                {/* Header */}
+                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                    <tr>
+                        <th className="px-6 py-4 font-semibold">Trip</th>
+                        <th className="px-6 py-4 font-semibold">Vehicle</th>
+                        <th className="px-6 py-4 font-semibold">Driver</th>
+                        <th className="px-6 py-4 font-semibold">Status</th>
+                    </tr>
+                </thead>
 
-            {/* Rows */}
-            {trips.length === 0 ? (
-                <div className="p-6 text-sm text-gray-500">
-                    No trips available.
-                </div>
-            ) : (
-                trips.map((trip) => (
-                    <div
-                        key={trip.id}
-                        className="grid grid-cols-4 border-t text-sm hover:bg-gray-50"
-                    >
-                        <div className="border-r p-4">{trip.id}</div>
-                        <div className="border-r p-4">{trip.vehicle}</div>
-                        <div className="border-r p-4">{trip.driver}</div>
-                        <div className="p-4">
-                            <span
-                                className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusStyles(
-                                    trip.status
-                                )}`}
+                {/* Body */}
+                <tbody className="divide-y divide-gray-100">
+                    {trips.length === 0 ? (
+                        <tr>
+                            <td
+                                colSpan={4}
+                                className="px-6 py-6 text-center text-sm text-gray-500"
                             >
-                                {trip.status}
-                            </span>
-                        </div>
-                    </div>
-                ))
-            )}
+                                No trips available.
+                            </td>
+                        </tr>
+                    ) : (
+                        trips.map((trip) => (
+                            <tr
+                                key={trip.id}
+                                className="transition hover:bg-gray-50"
+                            >
+                                <td className="px-6 py-5 font-medium text-gray-900">
+                                    {trip.id}
+                                </td>
+                                <td className="px-6 py-5 text-gray-700">
+                                    {trip.vehicle}
+                                </td>
+                                <td className="px-6 py-5 text-gray-700">
+                                    {trip.driver}
+                                </td>
+                                <td className="px-6 py-5">
+                                    <span
+                                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusStyles(
+                                            trip.status
+                                        )}`}
+                                    >
+                                        {trip.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
         </div>
     );
 }

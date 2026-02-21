@@ -2,9 +2,9 @@ import React from "react";
 import Card from "./Card";
 
 interface StatCardProps {
-    title: string;
-    value: string | number;
-    description?: string;
+    title: string
+    value: string
+    description: React.ReactNode
 }
 
 export default function StatCard({ title, value, description }: StatCardProps) {

@@ -91,7 +91,22 @@ export default function AnalyticsPage() {
                 <StatCard
                     title="Fleet Risk"
                     value={risk ? `${risk.risk}/100` : "—"}
-                    description={risk ? risk.level : "Loading"}
+                    description={
+                        risk ? (
+                            <span
+                                className={`font-semibold ${risk.level === "High"
+                                        ? "text-red-600"
+                                        : risk.level === "Moderate"
+                                            ? "text-yellow-600"
+                                            : "text-green-600"
+                                    }`}
+                            >
+                                {risk?.level}
+                            </span>
+                        ) : (
+                            "Loading"
+                        )
+                    }
                 />
             </div>
 
