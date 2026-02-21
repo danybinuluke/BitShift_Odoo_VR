@@ -1,7 +1,16 @@
 import prisma from "../config/prisma.js";
-////////////////////////////////////////////////////////////
-// ADD MAINTENANCE
-////////////////////////////////////////////////////////////
+
+export const getMaintenances = async (req, res) => {
+    try {
+        const maintenances = await prisma.maintenance.findMany({
+            include: { vehicle: true }
+        });
+        res.json(maintenances);
+    } catch (error) {
+        console.error("Get Maintenances Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
 
 export const addMaintenance = async (req, res) => {
     try {
@@ -23,7 +32,6 @@ export const addMaintenance = async (req, res) => {
             }
         });
 
-        // 🔥 Switch vehicle to IN_SHOP
         await prisma.vehicle.update({
             where: { id: parseInt(vehicleId) },
             data: { status: "IN_SHOP" }
@@ -35,10 +43,6 @@ export const addMaintenance = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
-////////////////////////////////////////////////////////////
-// FINISH MAINTENANCE
-////////////////////////////////////////////////////////////
 
 export const finishMaintenance = async (req, res) => {
     try {

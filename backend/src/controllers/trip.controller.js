@@ -77,3 +77,18 @@ export const completeTrip = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+export const getTrips = async (req, res) => {
+    try {
+        const trips = await prisma.trip.findMany({
+            include: {
+                vehicle: true,
+                driver: true
+            }
+        });
+        res.json(trips);
+    } catch (error) {
+        console.error("Get Trips Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
