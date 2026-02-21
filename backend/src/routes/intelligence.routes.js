@@ -2,7 +2,8 @@ import express from "express";
 import {
     fleetRiskController,
     recommendAssignmentController,
-    metricsController
+    metricsController,
+    profitMetricsController
 } from "../controllers/intelligence.controller.js";
 
 const router = express.Router();

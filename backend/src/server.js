@@ -6,7 +6,7 @@ import vehicleRoutes from "./routes/vehicle.routes.js";
 import driverRoutes from "./routes/driver.routes.js";
 import tripRoutes from "./routes/trip.routes.js";
 import maintenanceRoutes from "./routes/maintenance.routes.js";
-
+import authRoutes from "./routes/auth.routes.js";
 // ADD THIS LINE (YOUR ROUTES)
 import intelligenceRoutes from "./routes/intelligence.routes.js";
 
@@ -18,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 // Core system routes
+app.use("/api/auth", authRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/trips", tripRoutes);
