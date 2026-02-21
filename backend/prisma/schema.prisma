@@ -69,6 +69,9 @@ model Vehicle {
   capacity         Int
   status           VehicleStatus  @default(AVAILABLE)
 
+  odometer         Int            @default(0)
+
+
   totalFuelCost    Float          @default(0)
   totalMaintenance Float          @default(0)
 
