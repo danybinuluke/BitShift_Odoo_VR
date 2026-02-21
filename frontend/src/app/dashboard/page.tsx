@@ -130,14 +130,14 @@ export default function DashboardPage() {
 
     const headers = ["Trip", "Vehicle", "Driver", "Status"];
 
-    const rows = dummyTrips.map((t) => [
+    const rows = mappedTrips.map((t) => [
         t.id,
         t.vehicle,
         t.driver,
         <StatusPill
             key={t.id}
             variant={
-                t.status.toLowerCase().includes("dispatch")
+                t.status.toLowerCase().includes("trip")
                     ? "onTrip"
                     : t.status.toLowerCase().includes("cancel")
                         ? "danger"
@@ -269,11 +269,7 @@ export default function DashboardPage() {
                     Recent Trips
                 </h2>
 
-<<<<<<< HEAD
                 <DataTable headers={headers} rows={rows} />
-=======
-                <DashboardTable trips={mappedTrips.slice(0, 5)} />
->>>>>>> f39b62189c4957a33384b6d5e6d02b36e21ad9b6
             </div>
         </div>
     );
