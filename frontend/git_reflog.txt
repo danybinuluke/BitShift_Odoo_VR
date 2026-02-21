@@ -1,0 +1,5 @@
+20ac8f1 HEAD@{0}: reset: moving to 20ac8f1fbd3150b8616fde1f24b5ea01f4cbb9e6
+d8b1340 HEAD@{1}: commit (merge): Resolve merge conflicts
+9b6bcfd HEAD@{2}: commit: Updated frontend UI and components
+a67174f HEAD@{3}: commit: Initial commit
+c5f9691 HEAD@{4}: commit: Initial commit

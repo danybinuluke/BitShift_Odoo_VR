@@ -1,0 +1,65 @@
+commit 9b6bcfd5b5763949248edc96b6b082c79636ce86
+Author: Dany Binu Luke <danybinu2005@gmail.com>
+Date:   Sat Feb 21 12:03:28 2026 +0530
+
+    Updated frontend UI and components
+
+ frontend/build_log.txt                          |  Bin 0 -> 4950 bytes
+ frontend/components.json                        |   25 +
+ frontend/eslint.json                            |  Bin 0 -> 58318 bytes
+ frontend/eslint.txt                             |  Bin 0 -> 5048 bytes
+ frontend/eslint_clean.txt                       |  Bin 0 -> 4278 bytes
+ frontend/eslint_compact.txt                     |    0
+ frontend/eslint_out.txt                         |  Bin 0 -> 600 bytes
+ frontend/eslint_output.txt                      |  Bin 0 -> 5048 bytes
+ frontend/eslint_table.txt                       |    0
+ frontend/eslint_txt.txt                         |  Bin 0 -> 5048 bytes
+ frontend/eslint_unix.txt                        |    0
+ frontend/lint_full_output.txt                   |  Bin 0 -> 11278 bytes
+ frontend/package-lock.json                      | 5493 ++++++++++++++++++++++-
+ frontend/package.json                           |    9 +-
+ frontend/src/app/analytics/page.tsx             |  161 +-
+ frontend/src/app/auth/page.tsx                  |  365 ++
+ frontend/src/app/dashboard/page.tsx             |  243 +-
+ frontend/src/app/dispatcher/page.tsx            |   49 +-
+ frontend/src/app/drivers/page.tsx               |   41 +-
+ frontend/src/app/expenses/page.tsx              |  213 +-
+ frontend/src/app/globals.css                    |    2 +-
+ frontend/src/app/layout.tsx                     |    9 +-
+ frontend/src/app/maintenance/page.tsx           |  209 +-
+ frontend/src/app/vehicles/new/page.tsx          |  180 +
+ frontend/src/app/vehicles/page.tsx              |   54 +-
+ frontend/src/components/AccessControl.tsx       |   38 +
+ frontend/src/components/AuthGuard.tsx           |   41 +
+ frontend/src/components/StaggeredMenu.tsx       |  211 +
+ frontend/src/components/layout/ClientLayout.tsx |   37 +
+ frontend/src/components/layout/Sidebar.tsx      |   81 +-
+ frontend/src/components/layout/Topbar.tsx       |   62 +-
+ frontend/src/config/rbac.ts                     |   78 +
+ frontend/src/context/RoleContext.tsx            |   60 +
+ frontend/src/lib/api.ts                         |   16 +
+ frontend/src/lib/authService.ts                 |   75 +
+ frontend/src/lib/utils.ts                       |    6 +
+ frontend/tsc_out.txt                            |    0
+ frontend/tsc_output.txt                         |  Bin 0 -> 152148 bytes
+ 38 files changed, 7136 insertions(+), 622 deletions(-)
+--- 
+commit 1e0a53b67729dcdbb37fe4d894205a02c5568cd9
+Merge: 20ac8f1 16c7f7c
+Author: DiyaMulakkal <diyamulakkal@gmail.com>
+Date:   Sat Feb 21 11:42:01 2026 +0530
+
+    Merge branch 'main' of https://github.com/danybinuluke/BitShift_Odoo_VR
+
+ backend/.gitignore                                 |    5 +
+ backend/package-lock.json                          | 1960 ++++++++++++++++++++
+ backend/package.json                               |   23 +
+ backend/prisma.config.ts                           |   14 +
+ backend/prisma/schema.prisma                       |   74 +
+ backend/src/controllers/driver.controller.js       |   14 +
+ backend/src/controllers/maintainance.controller.js |   17 +
+ backend/src/controllers/trip.controller.js         |   70 +
+ backend/src/controllers/vehicle.controller.js      |   39 +
+ backend/src/routes/vehicle.routes.js               |    9 +
+ backend/src/server.js                              |   32 +
+ 11 files changed, 2257 insertions(+)

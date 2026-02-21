@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Truck } from "lucide-react";
+import { ArrowLeft, Save, Truck, Package, Activity, Info } from "lucide-react";
 import { createVehicle } from "@/lib/api";
 import AccessControl from "@/components/AccessControl";
 import Card from "@/components/ui/Card";
@@ -16,8 +16,10 @@ export default function NewVehiclePage() {
     // Form state
     const [model, setModel] = useState("");
     const [licensePlate, setLicensePlate] = useState("");
-    const [year, setYear] = useState(new Date().getFullYear());
+    const [capacity, setCapacity] = useState("");
     const [mileage, setMileage] = useState(0);
+    const [type, setType] = useState("Heavy Truck");
+    const [year, setYear] = useState(new Date().getFullYear());
     const [fuelType, setFuelType] = useState("Diesel");
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +33,9 @@ export default function NewVehiclePage() {
                 licensePlate,
                 year,
                 mileage,
-                fuelType
+                fuelType,
+                type,
+                capacity
             });
             // Redirect back to vehicles list on success
             router.push("/vehicles");
@@ -60,9 +64,9 @@ export default function NewVehiclePage() {
                     <div>
                         <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                             <Truck className="w-5 h-5 text-gray-400" />
-                            Add New Vehicle
+                            New Vehicle Registration
                         </h1>
-                        <p className="text-sm text-gray-500 mt-0.5">Register a new asset to your fleet operations</p>
+                        <p className="text-sm text-gray-500 mt-0.5">Register a new asset to your digital garage</p>
                     </div>
                 </div>
 
@@ -70,55 +74,44 @@ export default function NewVehiclePage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
                             <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                <Info className="w-5 h-5 text-red-500" />
                                 <p className="text-sm text-red-600 font-medium">{error}</p>
                             </div>
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Model */}
-                            <div>
-                                <label className={labelClass}>Vehicle Model / Name</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={model}
-                                    onChange={(e) => setModel(e.target.value)}
-                                    placeholder="e.g. Volvo FH16 750"
-                                    className={inputClass}
-                                />
-                            </div>
-
                             {/* License Plate */}
-                            <div>
+                            <div className="md:col-span-2">
                                 <label className={labelClass}>License Plate</label>
                                 <input
                                     type="text"
                                     required
                                     value={licensePlate}
                                     onChange={(e) => setLicensePlate(e.target.value)}
-                                    placeholder="e.g. MH-12-AB-1234"
+                                    placeholder="e.g. MH 00"
                                     className={`${inputClass} uppercase`}
                                 />
                             </div>
 
-                            {/* Year */}
+                            {/* Max Payload / Capacity */}
                             <div>
-                                <label className={labelClass}>Manufacturing Year</label>
-                                <input
-                                    type="number"
-                                    required
-                                    min="1990"
-                                    max={new Date().getFullYear() + 1}
-                                    value={year}
-                                    onChange={(e) => setYear(parseInt(e.target.value) || 0)}
-                                    className={inputClass}
-                                />
+                                <label className={labelClass}>Max Payload (Capacity)</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        required
+                                        value={capacity}
+                                        onChange={(e) => setCapacity(e.target.value)}
+                                        placeholder="e.g. 5 tons"
+                                        className={inputClass}
+                                    />
+                                    <Package className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                </div>
                             </div>
 
-                            {/* Mileage */}
+                            {/* Initial Odometer */}
                             <div>
-                                <label className={labelClass}>Current Mileage (km)</label>
+                                <label className={labelClass}>Initial Odometer</label>
                                 <div className="relative">
                                     <input
                                         type="number"
@@ -126,16 +119,53 @@ export default function NewVehiclePage() {
                                         min="0"
                                         value={mileage}
                                         onChange={(e) => setMileage(parseInt(e.target.value) || 0)}
-                                        className={`${inputClass} pr-12`}
+                                        className={inputClass}
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400 pointer-events-none">
-                                        km
-                                    </span>
+                                    <Activity className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 </div>
                             </div>
 
-                            {/* Fuel Type */}
-                            <div className="md:col-span-2">
+                            {/* Type */}
+                            <div>
+                                <label className={labelClass}>Type</label>
+                                <select
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                    className={inputClass}
+                                >
+                                    <option value="Mini">Mini</option>
+                                    <option value="Standard">Standard</option>
+                                    <option value="Heavy Truck">Heavy Truck</option>
+                                    <option value="Trailer">Trailer</option>
+                                    <option value="Specialized">Specialized</option>
+                                </select>
+                            </div>
+
+                            {/* Model */}
+                            <div>
+                                <label className={labelClass}>Model / Manufacturing Year</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        type="text"
+                                        required
+                                        value={model}
+                                        onChange={(e) => setModel(e.target.value)}
+                                        placeholder="e.g. Volvo FH16"
+                                        className={inputClass}
+                                    />
+                                    <input
+                                        type="number"
+                                        required
+                                        min="1990"
+                                        value={year}
+                                        onChange={(e) => setYear(parseInt(e.target.value) || 2024)}
+                                        className={inputClass}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Fuel Type (Hidden/Defaulted since not in wireframe but in backend) */}
+                            <div className="hidden">
                                 <label className={labelClass}>Fuel Type</label>
                                 <select
                                     value={fuelType}
@@ -143,10 +173,7 @@ export default function NewVehiclePage() {
                                     className={inputClass}
                                 >
                                     <option value="Diesel">Diesel</option>
-                                    <option value="Petrol">Petrol</option>
                                     <option value="Electric">Electric</option>
-                                    <option value="Hybrid">Hybrid</option>
-                                    <option value="CNG">CNG</option>
                                 </select>
                             </div>
                         </div>
@@ -166,7 +193,7 @@ export default function NewVehiclePage() {
                                 {loading ? "Saving..." : (
                                     <>
                                         <Save className="w-4 h-4" />
-                                        Save Vehicle
+                                        Save
                                     </>
                                 )}
                             </button>

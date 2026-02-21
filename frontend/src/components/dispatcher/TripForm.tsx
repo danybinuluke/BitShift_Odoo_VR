@@ -11,6 +11,7 @@ interface Vehicle {
 interface Driver {
     id: number;
     name: string;
+    licenseExpiryDate?: string;
 }
 
 interface TripFormProps {
@@ -84,11 +85,14 @@ export default function TripForm({
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200"
                     >
                         <option value="">Select a driver</option>
-                        {drivers.map((d) => (
-                            <option key={d.id} value={d.id}>
-                                {d.name}
-                            </option>
-                        ))}
+                        {drivers.map((d) => {
+                            const isExpired = !!(d.licenseExpiryDate && new Date(d.licenseExpiryDate) < new Date());
+                            return (
+                                <option key={d.id} value={d.id} disabled={isExpired}>
+                                    {d.name} {isExpired ? "(LICENSE EXPIRED)" : ""}
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
 
