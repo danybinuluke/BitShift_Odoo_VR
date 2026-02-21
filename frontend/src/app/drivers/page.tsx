@@ -5,6 +5,7 @@ import { getDrivers } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import StatusPill from "@/components/ui/StatusPill";
 import DataTable from "@/components/ui/DataTable";
+import AccessControl from "@/components/AccessControl";
 
 function getStatusVariant(status: string) {
     const s = status?.toLowerCase();
@@ -41,26 +42,28 @@ export default function DriversPage() {
     ]);
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">
-                    {loading ? "Loading..." : `${drivers.length} drivers registered`}
-                </p>
-            </div>
+        <AccessControl allowedRoles={["Manager", "Dispatcher", "Safety"]}>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-500">
+                        {loading ? "Loading..." : `${drivers.length} drivers registered`}
+                    </p>
+                </div>
 
-            <Card className="p-0">
-                {loading ? (
-                    <div className="p-6">
-                        <div className="space-y-3">
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="h-10 bg-gray-50 rounded" />
-                            ))}
+                <Card className="p-0">
+                    {loading ? (
+                        <div className="p-6">
+                            <div className="space-y-3">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="h-10 bg-gray-50 rounded" />
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <DataTable headers={headers} rows={rows} />
-                )}
-            </Card>
-        </div>
+                    ) : (
+                        <DataTable headers={headers} rows={rows} />
+                    )}
+                </Card>
+            </div>
+        </AccessControl>
     );
 }

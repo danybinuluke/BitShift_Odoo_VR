@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import TripForm from "@/components/dispatcher/TripForm";
 import RecommendationCard from "@/components/dispatcher/RecommendationCard";
+import AccessControl from "@/components/AccessControl";
 
 export default function DispatcherPage() {
     const [vehicles, setVehicles] = useState<any[]>([]);
@@ -66,34 +67,36 @@ export default function DispatcherPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Left: Form */}
-                <TripForm
-                    vehicles={vehicles}
-                    drivers={drivers}
-                    onRecommend={handleRecommend}
-                    onDispatch={handleDispatch}
-                    recommending={recommending}
-                    dispatching={dispatching}
-                />
+        <AccessControl allowedRoles={["Dispatcher"]}>
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {/* Left: Form */}
+                    <TripForm
+                        vehicles={vehicles}
+                        drivers={drivers}
+                        onRecommend={handleRecommend}
+                        onDispatch={handleDispatch}
+                        recommending={recommending}
+                        dispatching={dispatching}
+                    />
 
-                {/* Right: Recommendation result */}
-                <div className="space-y-4">
-                    <RecommendationCard data={recommendation} />
+                    {/* Right: Recommendation result */}
+                    <div className="space-y-4">
+                        <RecommendationCard data={recommendation} />
 
-                    {dispatchResult && (
-                        <div
-                            className={`rounded-lg border px-4 py-3 text-sm font-medium ${dispatchResult.includes("success")
+                        {dispatchResult && (
+                            <div
+                                className={`rounded-lg border px-4 py-3 text-sm font-medium ${dispatchResult.includes("success")
                                     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                                     : "border-red-200 bg-red-50 text-red-700"
-                                }`}
-                        >
-                            {dispatchResult}
-                        </div>
-                    )}
+                                    }`}
+                            >
+                                {dispatchResult}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </AccessControl>
     );
 }

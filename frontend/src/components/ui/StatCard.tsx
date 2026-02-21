@@ -3,7 +3,7 @@ import Card from "./Card";
 
 interface StatCardProps {
     title: string
-    value: string
+    value: React.ReactNode
     description: React.ReactNode
 }
 
