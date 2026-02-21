@@ -2,70 +2,80 @@ import pkg from "@prisma/client";
 const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
+////////////////////////////////////////////////////////////
+// CREATE TRIP
+////////////////////////////////////////////////////////////
+
 export const createTrip = async (req, res) => {
-    const { vehicleId, driverId, cargoWeight, distance, origin, destination } = req.body;
-
-    const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
-    const driver = await prisma.driver.findUnique({ where: { id: driverId } });
-
-    if (!vehicle || !driver)
-        return res.status(404).json({ error: "Vehicle or Driver not found" });
-
-    if (vehicle.status !== "Available")
-        return res.status(400).json({ error: "Vehicle not available" });
-
-    if (cargoWeight > vehicle.capacity)
-        return res.status(400).json({ error: "Over capacity" });
-
-    if (new Date(driver.licenseExpiry) < new Date())
-        return res.status(400).json({ error: "License expired" });
-
-    const trip = await prisma.trip.create({
-        data: {
+    try {
+        const {
             vehicleId,
             driverId,
             cargoWeight,
             distance,
             origin,
-            destination,
-            status: "Dispatched",
-            revenue: distance * 15
+            destination
+        } = req.body;
+
+        const vehicle = await prisma.vehicle.findUnique({
+            where: { id: parseInt(vehicleId) }
+        });
+
+        if (!vehicle) {
+            return res.status(404).json({ error: "Vehicle not found" });
         }
-    });
 
-    await prisma.vehicle.update({
-        where: { id: vehicleId },
-        data: { status: "OnTrip" }
-    });
+        if (vehicle.status !== "AVAILABLE") {
+            return res.status(400).json({ error: "Vehicle not available" });
+        }
 
-    res.json(trip);
+        const trip = await prisma.trip.create({
+            data: {
+                vehicleId: parseInt(vehicleId),
+                driverId: parseInt(driverId),
+                cargoWeight,
+                distance,
+                origin,
+                destination,
+                status: "DISPATCHED"
+            }
+        });
+
+        // 🔥 Update vehicle status
+        await prisma.vehicle.update({
+            where: { id: parseInt(vehicleId) },
+            data: { status: "ON_TRIP" }
+        });
+
+        res.json(trip);
+    } catch (error) {
+        console.error("Create Trip Error:", error);
+        res.status(500).json({ error: error.message });
+    }
 };
 
+////////////////////////////////////////////////////////////
+// COMPLETE TRIP
+////////////////////////////////////////////////////////////
+
 export const completeTrip = async (req, res) => {
-    const { tripId, fuelCost, maintenanceCost } = req.body;
+    try {
+        const { tripId } = req.params;
 
-    const trip = await prisma.trip.findUnique({ where: { id: tripId } });
+        const trip = await prisma.trip.update({
+            where: { id: parseInt(tripId) },
+            data: { status: "COMPLETED" }
+        });
 
-    if (!trip)
-        return res.status(404).json({ error: "Trip not found" });
+        // 🔥 Make vehicle available again
+        await prisma.vehicle.update({
+            where: { id: trip.vehicleId },
+            data: { status: "AVAILABLE" }
+        });
 
-    await prisma.trip.update({
-        where: { id: tripId },
-        data: {
-            status: "Completed",
-            fuelCost,
-            maintenanceCost
-        }
-    });
-
-    await prisma.vehicle.update({
-        where: { id: trip.vehicleId },
-        data: {
-            status: "Available",
-            totalFuelCost: { increment: fuelCost },
-            totalMaintenance: { increment: maintenanceCost }
-        }
-    });
-
-    res.json({ message: "Trip completed successfully" });
+        res.json({ message: "Trip completed successfully" });
+    } catch (error) {
+        console.error("Complete Trip Error:", error);
+        res.status(500).json({ error: error.message });
+    }
 };

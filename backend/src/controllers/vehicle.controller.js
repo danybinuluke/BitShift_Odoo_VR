@@ -4,9 +4,21 @@ const prisma = new PrismaClient();
 
 const plateRegex = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
 
+////////////////////////////////////////////////////////////
+// CREATE VEHICLE
+////////////////////////////////////////////////////////////
+
 export const createVehicle = async (req, res) => {
     try {
-        const { model, type, licensePlate, capacity, odometer } = req.body;
+        const {
+            model,
+            type,
+            licensePlate,
+            year,
+            mileage,
+            fuelType,
+            capacity
+        } = req.body;
 
         const formattedPlate = licensePlate.toUpperCase().trim();
 
@@ -19,23 +31,36 @@ export const createVehicle = async (req, res) => {
                 model,
                 type,
                 licensePlate: formattedPlate,
+                year,
+                mileage,
+                fuelType,
                 capacity,
-                odometer,
-                status: "Available"
+                status: "AVAILABLE"
             }
         });
 
         res.json(vehicle);
-
     } catch (error) {
+        console.error("Create Vehicle Error:", error);
+
         if (error.code === "P2002") {
             return res.status(400).json({ error: "License plate already exists" });
         }
-        res.status(500).json({ error: "Server error" });
+
+        res.status(500).json({ error: error.message });
     }
 };
 
+////////////////////////////////////////////////////////////
+// GET VEHICLES
+////////////////////////////////////////////////////////////
+
 export const getVehicles = async (req, res) => {
-    const vehicles = await prisma.vehicle.findMany();
-    res.json(vehicles);
+    try {
+        const vehicles = await prisma.vehicle.findMany();
+        res.json(vehicles);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
 };

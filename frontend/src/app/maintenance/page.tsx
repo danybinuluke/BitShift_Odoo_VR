@@ -5,7 +5,9 @@ import {
     getMaintenanceLogs,
     createMaintenanceLog,
     getVehicles,
+    getTrips,
 } from "@/lib/api";
+import { getAvailableVehicles } from "@/lib/utils";
 import Card from "@/components/ui/Card";
 import StatusPill from "@/components/ui/StatusPill";
 import DataTable from "@/components/ui/DataTable";
@@ -15,6 +17,7 @@ import { Search, SlidersHorizontal, ArrowUpDown, Layers } from "lucide-react";
 export default function MaintenancePage() {
     const [logs, setLogs] = useState<any[]>([]);
     const [vehicles, setVehicles] = useState<any[]>([]);
+    const [trips, setTrips] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -34,9 +37,14 @@ export default function MaintenancePage() {
 
     async function loadData() {
         try {
-            const [m, v] = await Promise.all([getMaintenanceLogs(), getVehicles()]);
+            const [m, v, t] = await Promise.all([
+                getMaintenanceLogs(),
+                getVehicles(),
+                getTrips()
+            ]);
             setLogs(Array.isArray(m) ? m : []);
             setVehicles(Array.isArray(v) ? v : []);
+            setTrips(Array.isArray(t) ? t : []);
         } catch (err) {
             console.error("Failed to load maintenance data:", err);
         } finally {
@@ -171,7 +179,7 @@ export default function MaintenancePage() {
                                     className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-gray-300 focus:ring-1 focus:ring-gray-200"
                                 >
                                     <option value="">Select vehicle</option>
-                                    {vehicles.map((v: any) => (
+                                    {getAvailableVehicles(vehicles, trips).map((v: any) => (
                                         <option key={v.id} value={v.id}>
                                             {v.model} {v.licensePlate ? `(${v.licensePlate})` : `#${v.id}`}
                                         </option>

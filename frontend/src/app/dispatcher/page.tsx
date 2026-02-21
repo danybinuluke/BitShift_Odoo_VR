@@ -4,15 +4,18 @@ import React, { useEffect, useState } from "react";
 import {
     getVehicles,
     getDrivers,
+    getTrips,
     recommendAssignment,
     createTrip,
 } from "@/lib/api";
+import { getAvailableVehicles } from "@/lib/utils";
 import TripForm from "@/components/dispatcher/TripForm";
 import RecommendationCard from "@/components/dispatcher/RecommendationCard";
 import AccessControl from "@/components/AccessControl";
 
 export default function DispatcherPage() {
     const [vehicles, setVehicles] = useState<any[]>([]);
+    const [trips, setTrips] = useState<any[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
     const [recommendation, setRecommendation] = useState<any>(null);
     const [recommending, setRecommending] = useState(false);
@@ -20,13 +23,16 @@ export default function DispatcherPage() {
     const [dispatchResult, setDispatchResult] = useState<string | null>(null);
 
     useEffect(() => {
-        Promise.all([getVehicles(), getDrivers()])
-            .then(([v, d]) => {
+        Promise.all([getVehicles(), getDrivers(), getTrips()])
+            .then(([v, d, t]) => {
                 setVehicles(Array.isArray(v) ? v : []);
                 setDrivers(Array.isArray(d) ? d : []);
+                setTrips(Array.isArray(t) ? t : []);
             })
             .catch(console.error);
     }, []);
+
+    const availableVehicles = getAvailableVehicles(vehicles, trips);
 
     const handleRecommend = async (data: {
         vehicleId: number;
@@ -58,6 +64,7 @@ export default function DispatcherPage() {
             await createTrip(data);
             setDispatchResult("Trip dispatched successfully.");
             setRecommendation(null);
+            getTrips().then((t) => setTrips(Array.isArray(t) ? t : []));
         } catch (err) {
             console.error("Dispatch error:", err);
             setDispatchResult("Failed to dispatch trip.");
@@ -72,7 +79,7 @@ export default function DispatcherPage() {
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Left: Form */}
                     <TripForm
-                        vehicles={vehicles}
+                        vehicles={availableVehicles}
                         drivers={drivers}
                         onRecommend={handleRecommend}
                         onDispatch={handleDispatch}
