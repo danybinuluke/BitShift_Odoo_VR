@@ -8,13 +8,13 @@ export const calculateFleetRisk = async () => {
 
     const vehiclesInShop =
         await prisma.vehicle.count({
-            where: { status: "Maintenance" }
+            where: { status: "IN_SHOP" }
         });
 
     const expiredDrivers =
         await prisma.driver.count({
             where: {
-                licenseExpiry: {
+                licenseExpiryDate: {
                     lt: new Date()
                 }
             }
@@ -52,7 +52,6 @@ export const calculateFleetRisk = async () => {
 export const recommendAssignment =
     async (vehicleId, driverId, cargoWeight, fatigueLevel) => {
 
-        // Fetch vehicle and driver
         const vehicle =
             await prisma.vehicle.findUnique({
                 where: { id: vehicleId }
@@ -74,7 +73,7 @@ export const recommendAssignment =
             process.env.AI_SERVICE_URL ||
             "https://fleetflow-ai.onrender.com";
 
-        let aiRiskLevel = "MEDIUM"; // fallback default
+        let aiRiskLevel = "MEDIUM";
 
         try {
 
@@ -90,7 +89,7 @@ export const recommendAssignment =
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        safetyScore: driver.safetyScore,
+                        safetyScore: driver.safetyRating,
                         tripsCompleted: driver.tripsCompleted || 23,
                         fatigueLevel: fatigueLevel
                     }),
@@ -118,27 +117,21 @@ export const recommendAssignment =
         // Logic-Based Scoring
         // ===============================
 
-        // Capacity score (how suitable vehicle is for cargo)
         const capacityScore =
             1 - (cargoWeight / vehicle.capacity);
 
-        // Base safety score from driver record
         const safetyScore =
-            driver.safetyScore / 100;
+            driver.safetyRating / 100;
 
-        // Fatigue penalty (NEW LOGIC)
         const fatiguePenalty =
             (fatigueLevel || 0) * 0.02;
 
-        // Adjust safety score based on fatigue
         const adjustedSafetyScore =
             Math.max(0, safetyScore - fatiguePenalty);
 
-        // Vehicle availability penalty
         const availabilityPenalty =
-            vehicle.status === "OnTrip" ? 0.2 : 0;
+            vehicle.status === "ON_TRIP" ? 0.2 : 0;
 
-        // Final base score using adjusted safety score
         const baseScore =
             (0.6 * capacityScore)
             +
@@ -157,8 +150,6 @@ export const recommendAssignment =
         else if (aiRiskLevel === "MEDIUM")
             finalScore -= 0.1;
 
-
-        // Prevent negative score
         finalScore = Math.max(0, finalScore);
 
 
@@ -180,7 +171,7 @@ export const recommendAssignment =
             recommendation,
             aiRiskLevel,
             vehicleStatus: vehicle.status,
-            driverSafetyScore: driver.safetyScore
+            driverSafetyRating: driver.safetyRating
         };
     };
 
@@ -196,7 +187,7 @@ export const getFleetMetrics = async () => {
 
     const activeVehicles =
         await prisma.vehicle.count({
-            where: { status: "OnTrip" }
+            where: { status: "ON_TRIP" }
         });
 
     const totalDrivers =
@@ -262,6 +253,7 @@ export const getProfitMetrics = async () => {
     };
 };
 
+
 // ===============================
 // 5. AI Health Check
 // ===============================
@@ -304,6 +296,7 @@ export const getAIHealth = async () => {
 
 };
 
+
 // ===============================
 // 6. Profit Trend Engine
 // ===============================
@@ -337,15 +330,16 @@ export const getProfitTrend = async () => {
     return trend;
 };
 
+
 // ===============================
-// Cost Per KM Intelligence
+// 7. Cost Per KM Intelligence
 // ===============================
 export const getCostPerKm = async (vehicleId) => {
 
     const lastTrip = await prisma.trip.findFirst({
         where: {
             vehicleId: vehicleId,
-            status: "Completed"
+            status: "COMPLETED"
         },
         orderBy: {
             id: "desc"

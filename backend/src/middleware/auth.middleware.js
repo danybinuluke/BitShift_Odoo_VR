@@ -1,7 +1,5 @@
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../config/prisma.js";   // ✅ use shared prisma instance
 
 /* ===========================
    PROTECT ROUTES (JWT)
@@ -11,7 +9,10 @@ export const protect = async (req, res, next) => {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({ message: "Not authorized" });
+            return res.status(401).json({
+                success: false,
+                message: "Not authorized, no token"
+            });
         }
 
         const token = authHeader.split(" ")[1];
@@ -23,24 +24,49 @@ export const protect = async (req, res, next) => {
         });
 
         if (!user) {
-            return res.status(401).json({ message: "User not found" });
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
         }
 
         req.user = user;
+
         next();
+
     } catch (err) {
-        return res.status(401).json({ message: "Invalid token" });
+
+        console.error("Auth middleware error:", err);
+
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired token"
+        });
     }
 };
+
 
 /* ===========================
    ROLE AUTHORIZATION
 =========================== */
 export const authorize = (...allowedRoles) => {
+
     return (req, res, next) => {
-        if (!allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ message: "Access denied" });
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Not authenticated"
+            });
         }
+
+        if (!allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied"
+            });
+        }
+
         next();
     };
 };
