@@ -3,7 +3,8 @@ import {
     recommendAssignment,
     getFleetMetrics,
     getProfitMetrics,
-    getAIHealth
+    getAIHealth,
+    getProfitTrend
 } from "../services/intelligence.service.js";
 
 
@@ -171,6 +172,34 @@ export const aiHealthController = async (req, res) => {
     } catch (error) {
 
         console.error("AI Health Error:", error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+
+};
+
+// ===============================
+// Profit Trend Controller
+// ===============================
+export const profitTrendController = async (req, res) => {
+
+    try {
+
+        const result =
+            await getProfitTrend();
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+
+        console.error("Profit Trend Error:", error);
 
         res.status(500).json({
             success: false,

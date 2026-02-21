@@ -291,3 +291,36 @@ export const getAIHealth = async () => {
     }
 
 };
+
+// ===============================
+// 6. Profit Trend Engine
+// ===============================
+export const getProfitTrend = async () => {
+
+    const trips = await prisma.trip.findMany({
+        orderBy: {
+            createdAt: "asc"
+        }
+    });
+
+    const trend = trips.map(trip => {
+
+        const cost =
+            trip.fuelCost +
+            trip.maintenanceCost;
+
+        const profit =
+            trip.revenue - cost;
+
+        return {
+            tripId: trip.id,
+            date: trip.createdAt,
+            revenue: trip.revenue,
+            cost,
+            profit
+        };
+
+    });
+
+    return trend;
+};

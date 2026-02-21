@@ -4,7 +4,8 @@ import {
     recommendAssignmentController,
     metricsController,
     profitMetricsController,
-    aiHealthController
+    aiHealthController,
+    profitTrendController
 } from "../controllers/intelligence.controller.js";
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.post("/recommend", recommendAssignmentController);
 router.get("/metrics", metricsController);
 router.get("/profit-metrics", profitMetricsController);
 router.get("/ai-health", aiHealthController);
+router.get("/profit-trend", profitTrendController);
 
 export default router;

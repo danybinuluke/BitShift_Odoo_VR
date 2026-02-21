@@ -22,6 +22,19 @@ app.get("/", (req, res) => {
     });
 });
 
+app.get("/api", (req, res) => {
+    res.json({
+        message: "FleetFlow API is running",
+        availableRoutes: [
+            "/api/intelligence/metrics",
+            "/api/intelligence/recommend",
+            "/api/vehicles",
+            "/api/drivers",
+            "/api/trips",
+            "/api/maintenance"
+        ]
+    });
+});
 app.use(cors());
 app.use(express.json());
 
