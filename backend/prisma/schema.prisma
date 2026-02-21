@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  
 }
 
 generator client {
@@ -56,4 +56,19 @@ model Maintenance {
   date      DateTime @default(now())
 
   vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  MANAGER
+  DISPATCHER
+  SAFETY
 }
