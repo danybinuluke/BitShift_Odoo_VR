@@ -58,17 +58,19 @@ model Maintenance {
   vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
 }
 
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-}
-
 enum Role {
   MANAGER
   DISPATCHER
   SAFETY
+  FINANCE
+}
+
+model User {
+  id               String   @id @default(uuid())
+  name             String
+  email            String   @unique
+  password         String
+  role             Role
+  resetToken       String?
+  resetTokenExpiry DateTime?
 }

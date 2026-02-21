@@ -20,7 +20,8 @@ export const createVehicle = async (req, res) => {
                 type,
                 licensePlate: formattedPlate,
                 capacity,
-                odometer
+                odometer,
+                status: "Available"
             }
         });
 
