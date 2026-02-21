@@ -9,7 +9,7 @@ import tripRoutes from "./routes/trip.routes.js";
 import maintenanceRoutes from "./routes/maintenance.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import intelligenceRoutes from "./routes/intelligence.routes.js";
-
+import analyticsRoutes from "./routes/analytics.routes.js";
 dotenv.config();
 
 const app = express();
@@ -129,7 +129,7 @@ app.use("/api/trips", tripRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 
 app.use("/api/intelligence", intelligenceRoutes);
-
+app.use("/api/analytics", analyticsRoutes);
 
 // ===============================
 // Health Check Endpoint
