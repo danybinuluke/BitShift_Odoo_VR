@@ -249,3 +249,45 @@ export const getProfitMetrics = async () => {
             Number(profitMargin.toFixed(2))
     };
 };
+
+// ===============================
+// 5. AI Health Check
+// ===============================
+export const getAIHealth = async () => {
+
+    const AI_URL =
+        process.env.AI_SERVICE_URL ||
+        "https://fleetflow-ai.onrender.com";
+
+    try {
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+
+        const response = await fetch(
+            `${AI_URL}/health`,
+            {
+                method: "GET",
+                signal: controller.signal
+            }
+        );
+
+        clearTimeout(timeout);
+
+        return {
+            status: "UP",
+            serviceUrl: AI_URL,
+            httpStatus: response.status
+        };
+
+    } catch (error) {
+
+        return {
+            status: "DOWN",
+            serviceUrl: AI_URL,
+            error: error.message
+        };
+
+    }
+
+};

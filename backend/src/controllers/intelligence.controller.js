@@ -2,7 +2,8 @@ import {
     calculateFleetRisk,
     recommendAssignment,
     getFleetMetrics,
-    getProfitMetrics
+    getProfitMetrics,
+    getAIHealth
 } from "../services/intelligence.service.js";
 
 
@@ -152,3 +153,30 @@ export const profitMetricsController =
         }
 
     };
+
+//AI HEALTH CONTROLLER
+
+export const aiHealthController = async (req, res) => {
+
+    try {
+
+        const result =
+            await getAIHealth();
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+
+        console.error("AI Health Error:", error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+
+};

@@ -17,7 +17,10 @@ risk_labels = {
 def home():
     return {"message": "FleetFlow AI Service Running"}
 
-
+@app.get("/health")
+def health():
+    return {"status": "OK"}
+    
 @app.post("/predict-driver-risk")
 def predict_driver_risk(data: dict):
 
