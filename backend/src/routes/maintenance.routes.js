@@ -1,10 +1,20 @@
 import express from "express";
-import { addMaintenance } from "../controllers/maintenance.controller.js";
+import {
+    addMaintenance,
+    finishMaintenance
+} from "../controllers/maintenance.controller.js";
+
 import { protect, authorize } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-/* MANAGER ONLY */
 router.post("/", protect, authorize("MANAGER"), addMaintenance);
+
+router.put(
+    "/:vehicleId/finish",
+    protect,
+    authorize("MANAGER"),
+    finishMaintenance
+);
 
 export default router;
