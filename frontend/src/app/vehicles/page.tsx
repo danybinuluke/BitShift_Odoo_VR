@@ -27,8 +27,8 @@ export default function VehiclesPage() {
     async function loadData() {
         setLoading(true);
         try {
-            //const data = await getVehicles();
-            //setVehicles(Array.isArray(data) ? data : []);
+            const data = await getVehicles();
+            setVehicles(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -37,48 +37,7 @@ export default function VehiclesPage() {
     }
 
     useEffect(() => {
-        //loadData();
-        const dummyVehicles = [
-            {
-                id: 1,
-                licensePlate: "MH12AB1234",
-                model: "Van-01",
-                type: "Van",
-                capacity: "1000kg",
-                mileage: 24000,
-                status: "On Trip",
-            },
-            {
-                id: 2,
-                licensePlate: "DL08XY9876",
-                model: "Truck-05",
-                type: "Truck",
-                capacity: "5000kg",
-                mileage: 78000,
-                status: "Available",
-            },
-            {
-                id: 3,
-                licensePlate: "KA09LM4567",
-                model: "Bike-02",
-                type: "Bike",
-                capacity: "200kg",
-                mileage: 12000,
-                status: "Maintenance",
-            },
-            {
-                id: 4,
-                licensePlate: "TN22ZX1111",
-                model: "Trailer-XL",
-                type: "Trailer",
-                capacity: "8000kg",
-                mileage: 150000,
-                status: "On Trip",
-            },
-        ];
-
-        setVehicles(dummyVehicles);
-        setLoading(false);
+        loadData();
     }, []);
 
     const handleDelete = async (id: number) => {
