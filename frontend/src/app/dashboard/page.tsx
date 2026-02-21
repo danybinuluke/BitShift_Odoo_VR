@@ -6,7 +6,7 @@ import { useRole } from "@/context/RoleContext";
 import Card from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
 import StatusPill from "@/components/ui/StatusPill";
-import DashboardTable from "@/components/dashboard/DashboardTable";
+import DataTable from "@/components/ui/DataTable";
 import Link from "next/link";
 import { Search, SlidersHorizontal, ArrowUpDown, Plus } from "lucide-react";
 
@@ -142,6 +142,25 @@ export default function DashboardPage() {
         },
     ];
 
+    const headers = ["Trip", "Vehicle", "Driver", "Status"];
+
+    const rows = dummyTrips.map((t) => [
+        t.id,
+        t.vehicle,
+        t.driver,
+        <StatusPill
+            key={t.id}
+            variant={
+                t.status.toLowerCase().includes("dispatch")
+                    ? "onTrip"
+                    : t.status.toLowerCase().includes("cancel")
+                        ? "danger"
+                        : "available"
+            }
+            label={t.status}
+        />
+    ]);
+
     return (
         <div className="space-y-6">
             {/* ── Toolbar ───────────────────────────────────── */}
@@ -246,9 +265,10 @@ export default function DashboardPage() {
             {/* ── Trips Table ───────────────────────────────── */}
             <div>
                 <h2 className="text-base font-semibold text-gray-900 mb-2">
+                    Recent Trips
                 </h2>
 
-                <DashboardTable trips={dummyTrips} />
+                <DataTable headers={headers} rows={rows} />
             </div>
         </div>
     );
