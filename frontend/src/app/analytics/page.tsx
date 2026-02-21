@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getVehicles, getDrivers, getFleetRisk } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
+import AccessControl from "@/components/AccessControl";
 import {
     BarChart,
     Bar,
@@ -75,87 +76,89 @@ export default function AnalyticsPage() {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Summary Stats */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                <StatCard
-                    title="Total Vehicles"
-                    value={vehicles.length}
-                    description="In the fleet registry"
-                />
-                <StatCard
-                    title="Total Drivers"
-                    value={drivers.length}
-                    description="Registered in system"
-                />
-                <StatCard
-                    title="Fleet Risk"
-                    value={risk ? `${risk.risk}/100` : "—"}
-                    description={risk ? risk.level : "Loading"}
-                />
-            </div>
+        <AccessControl allowedRoles={["Manager", "Financial"]}>
+            <div className="space-y-6">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <StatCard
+                        title="Total Vehicles"
+                        value={vehicles.length}
+                        description="In the fleet registry"
+                    />
+                    <StatCard
+                        title="Total Drivers"
+                        value={drivers.length}
+                        description="Registered in system"
+                    />
+                    <StatCard
+                        title="Fleet Risk"
+                        value={risk ? `${risk.risk}/100` : "—"}
+                        description={risk ? risk.level : "Loading"}
+                    />
+                </div>
 
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Vehicle Status Pie */}
-                <Card>
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">
-                        Vehicle Status Distribution
-                    </h2>
-                    {statusData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={280}>
-                            <PieChart>
-                                <Pie
-                                    data={statusData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={100}
-                                    paddingAngle={3}
-                                    dataKey="value"
-                                    label={({ name, value }) => `${name}: ${value}`}
-                                >
-                                    {statusData.map((_, idx) => (
-                                        <Cell
-                                            key={idx}
-                                            fill={PIE_COLORS[idx % PIE_COLORS.length]}
-                                        />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <p className="text-sm text-gray-400">No vehicle data available.</p>
-                    )}
-                </Card>
+                {/* Charts Row */}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {/* Vehicle Status Pie */}
+                    <Card>
+                        <h2 className="text-base font-semibold text-gray-900 mb-4">
+                            Vehicle Status Distribution
+                        </h2>
+                        {statusData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={280}>
+                                <PieChart>
+                                    <Pie
+                                        data={statusData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        label={({ name, value }) => `${name}: ${value}`}
+                                    >
+                                        {statusData.map((_, idx) => (
+                                            <Cell
+                                                key={idx}
+                                                fill={PIE_COLORS[idx % PIE_COLORS.length]}
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="text-sm text-gray-400">No vehicle data available.</p>
+                        )}
+                    </Card>
 
-                {/* Risk Factors Bar */}
-                <Card>
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">
-                        Fleet Risk Factors
-                    </h2>
-                    {factorData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={280}>
-                            <BarChart data={factorData} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-                                <YAxis
-                                    type="category"
-                                    dataKey="name"
-                                    width={140}
-                                    tick={{ fontSize: 12 }}
-                                />
-                                <Tooltip />
-                                <Bar dataKey="value" fill="#6366f1" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <p className="text-sm text-gray-400">No risk data available.</p>
-                    )}
-                </Card>
+                    {/* Risk Factors Bar */}
+                    <Card>
+                        <h2 className="text-base font-semibold text-gray-900 mb-4">
+                            Fleet Risk Factors
+                        </h2>
+                        {factorData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={280}>
+                                <BarChart data={factorData} layout="vertical">
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                                    <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="name"
+                                        width={140}
+                                        tick={{ fontSize: 12 }}
+                                    />
+                                    <Tooltip />
+                                    <Bar dataKey="value" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="text-sm text-gray-400">No risk data available.</p>
+                        )}
+                    </Card>
+                </div>
             </div>
-        </div>
+        </AccessControl>
     );
 }

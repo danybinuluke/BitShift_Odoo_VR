@@ -8,6 +8,22 @@ export async function getVehicles() {
   return res.json();
 }
 
+export async function createVehicle(data: {
+  model: string;
+  licensePlate: string;
+  year: number;
+  mileage: number;
+  fuelType: string;
+}) {
+  const res = await fetch(`${BASE_URL}/vehicles`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create vehicle");
+  return res.json();
+}
+
 // ─── Drivers ─────────────────────────────────────────
 
 export async function getDrivers() {
