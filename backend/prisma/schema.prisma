@@ -135,7 +135,7 @@ model Maintenance {
   vehicleId  Int
   notes      String
   cost       Float    @default(0)
-  date       DateTime @default(now())
+  date       DateTime @default(now()) @db.Date
 
   vehicle    Vehicle  @relation(fields: [vehicleId], references: [id])
 }
