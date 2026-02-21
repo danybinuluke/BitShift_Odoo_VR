@@ -144,9 +144,9 @@ export default function MaintenancePage() {
     const uniqueStatuses = Array.from(new Set(logs.map((l: any) => l.status || "New")));
 
     // ── Table ───────────────────────────────────────────
-    const headers = ["Log ID", "Vehicle", "Issue/Service", "Date", "Cost", "Status"];
-    const rows = filtered.map((log: any) => [
-        log.id,
+    const headers = ["Index", "Vehicle", "Service Type", "Date", "Cost", "Status"];
+    const rows = filtered.map((log: any, index: number) => [
+        <span key={`no-${log.id}`} className="text-gray-500 font-medium">{index + 1}</span>,
         vehicleName(log.vehicleId),
         <StatusPill key={`t-${log.id}`} variant={getTypeVariant(log.type)} label={log.type || "—"} />,
         log.date || "—",
@@ -157,6 +157,15 @@ export default function MaintenancePage() {
     return (
         <AccessControl allowedRoles={["Manager", "Safety"]}>
             <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl font-bold text-gray-900">Maintenance Operations</h1>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Track and schedule vehicle service logs
+                        </p>
+                    </div>
+                </div>
+
                 {/* ── New Service Form (collapsible) ──────────── */}
                 {!showForm ? (
                     <button

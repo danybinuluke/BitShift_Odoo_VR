@@ -1,45 +1,73 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fleetflow-backend-hkhw.onrender.com/api";
+
+/**
+ * Standardized API Fetch Wrapper
+ * Ensures consistent headers and error handling across the entire codebase.
+ */
+async function apiFetch(endpoint: string, options: RequestInit = {}) {
+  const url = endpoint.startsWith("http") ? endpoint : `${BASE_URL}${endpoint}`;
+
+  const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    ...options.headers,
+  };
+
+  try {
+    const res = await fetch(url, { ...options, headers });
+
+    if (!res.ok) {
+      const errorBody = await res.json().catch(() => ({}));
+      throw new Error(errorBody.message || `API Error: ${res.status} ${res.statusText}`);
+    }
+
+    const json = await res.json();
+
+    // Auto-unwrap legacy/nested responses (e.g., { success: true, data: [...] })
+    if (json && typeof json === 'object' && 'data' in json) {
+      return json.data;
+    }
+
+    return json;
+  } catch (err) {
+    console.error(`Fetch error [${endpoint}]:`, err);
+    throw err;
+  }
+}
 
 // ─── Vehicles ────────────────────────────────────────
 
 export async function getVehicles() {
-  const res = await fetch(`${BASE_URL}/vehicles`);
-  if (!res.ok) throw new Error("Failed to fetch vehicles");
-  return res.json();
+  const data = await apiFetch("/vehicles");
+  return Array.isArray(data) ? data : [];
 }
 
 export async function createVehicle(data: {
   model: string;
   licensePlate: string;
   year: number;
-  mileage: number;
+  odometer: number;
   fuelType: string;
   type?: string;
-  capacity?: string;
+  capacity?: number;
 }) {
-  const res = await fetch(`${BASE_URL}/vehicles`, {
+  return apiFetch("/vehicles", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create vehicle");
-  return res.json();
 }
 
 export async function deleteVehicle(id: number) {
-  const res = await fetch(`${BASE_URL}/vehicles/${id}`, {
+  return apiFetch(`/vehicles/${id}`, {
     method: "DELETE",
   });
-  if (!res.ok) throw new Error("Failed to delete vehicle");
-  return res.json();
 }
 
 // ─── Drivers ─────────────────────────────────────────
 
 export async function getDrivers() {
-  const res = await fetch(`${BASE_URL}/drivers`);
-  if (!res.ok) throw new Error("Failed to fetch drivers");
-  return res.json();
+  const data = await apiFetch("/drivers");
+  return Array.isArray(data) ? data : [];
 }
 
 export async function createDriver(data: {
@@ -49,23 +77,17 @@ export async function createDriver(data: {
   experience?: number;
   phone?: string;
 }) {
-  const res = await fetch(`${BASE_URL}/drivers`, {
+  return apiFetch("/drivers", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create driver");
-  return res.json();
 }
 
 // ─── Trips ───────────────────────────────────────────
 
 export async function getTrips() {
-  const res = await fetch(`${BASE_URL}/trips`);
-  if (!res.ok) {
-    throw new Error("Failed to fetch trips");
-  }
-  return res.json();
+  const data = await apiFetch("/trips");
+  return Array.isArray(data) ? data : [];
 }
 
 export async function createTrip(data: {
@@ -74,21 +96,42 @@ export async function createTrip(data: {
   cargoWeight: number;
   distance: number;
 }) {
-  const res = await fetch(`${BASE_URL}/trips`, {
+  return apiFetch("/trips", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create trip");
-  return res.json();
 }
 
 // ─── Intelligence ────────────────────────────────────
 
 export async function getFleetRisk() {
-  const res = await fetch(`${BASE_URL}/intelligence/fleet-risk`);
-  if (!res.ok) throw new Error("Failed to fetch fleet risk");
-  return res.json();
+  return apiFetch("/intelligence/fleet-risk");
+}
+
+export async function getMetrics() {
+  return apiFetch("/intelligence/metrics");
+}
+
+export async function getProfitMetrics() {
+  return apiFetch("/intelligence/profit-metrics");
+}
+
+export async function getProfitTrend() {
+  try {
+    const data = await apiFetch("/intelligence/profit-trend");
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn("Profit trend endpoint failed, returning empty fallback.", err);
+    return [];
+  }
+}
+
+export async function getAIHealth() {
+  return apiFetch("/intelligence/ai-health");
+}
+
+export async function getCostPerKm(vehicleId: number) {
+  return apiFetch(`/intelligence/cost-per-km/${vehicleId}`);
 }
 
 export async function recommendAssignment(data: {
@@ -96,21 +139,22 @@ export async function recommendAssignment(data: {
   driverId: number;
   cargoWeight: number;
 }) {
-  const res = await fetch(`${BASE_URL}/intelligence/recommend`, {
+  return apiFetch("/intelligence/recommend", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to get recommendation");
-  return res.json();
 }
 
 // ─── Maintenance ─────────────────────────────────────
 
 export async function getMaintenanceLogs() {
-  const res = await fetch(`${BASE_URL}/maintenance`);
-  if (!res.ok) throw new Error("Failed to fetch maintenance logs");
-  return res.json();
+  try {
+    const data = await apiFetch("/maintenance");
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn("Maintenance logs fetch failed:", err);
+    return [];
+  }
 }
 
 export async function createMaintenanceLog(data: {
@@ -120,35 +164,23 @@ export async function createMaintenanceLog(data: {
   cost: number;
   date: string;
 }) {
-  const res = await fetch(`${BASE_URL}/maintenance`, {
+  return apiFetch("/maintenance", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to create maintenance log");
-  return res.json();
 }
 
-// ─── Expenses ────────────────────────────────────────
+// ─── System ──────────────────────────────────────────
 
-export async function getExpenses() {
-  const res = await fetch(`${BASE_URL}/expenses`);
-  if (!res.ok) throw new Error("Failed to fetch expenses");
-  return res.json();
+export async function getSystemStatus() {
+  return apiFetch("/system/status");
 }
 
-export async function createExpense(data: {
-  vehicleId: number;
-  category: string;
-  amount: number;
-  description: string;
-  date: string;
-}) {
-  const res = await fetch(`${BASE_URL}/expenses`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Failed to create expense");
-  return res.json();
+export async function getApiRoot() {
+  return apiFetch("");
+}
+
+export async function getHealth() {
+  const root = BASE_URL.endsWith("/api") ? BASE_URL.slice(0, -4) : BASE_URL;
+  return apiFetch(`${root}/health`);
 }

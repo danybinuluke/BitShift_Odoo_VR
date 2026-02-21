@@ -13,7 +13,6 @@ const pageTitles: Record<string, string> = {
     "/drivers": "Driver Management",
     "/dispatcher": "Trip Dispatcher",
     "/maintenance": "Maintenance Logs",
-    "/expenses": "Expense & Fuel Logging",
     "/analytics": "Operational Analytics",
 };
 

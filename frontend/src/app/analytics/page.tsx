@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getVehicles, getDrivers, getFleetRisk } from "@/lib/api";
+import { getVehicles, getDrivers, getFleetRisk, getMetrics, getProfitMetrics, getProfitTrend, getAIHealth } from "@/lib/api";
 import Card from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
 import DataTable from "@/components/ui/DataTable";
@@ -27,65 +27,29 @@ export default function AnalyticsPage() {
     const [risk, setRisk] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const [metrics, setMetrics] = useState<any>(null);
+    const [profitMetrics, setProfitMetrics] = useState<any>(null);
+    const [profitTrend, setProfitTrend] = useState<any[]>([]);
+
     useEffect(() => {
-        // Promise.all([getVehicles(), getDrivers(), getFleetRisk()])
-        //     .then(([v, d, r]) => {
-        //         setVehicles(Array.isArray(v) ? v : []);
-        //         setDrivers(Array.isArray(d) ? d : []);
-        //         setRisk(r);
-        //     })
-        //     .catch(console.error)
-        //     .finally(() => setLoading(false));
-        const dummyVehicles = [
-            {
-                id: 1,
-                model: "Van-01",
-                status: "active",
-                totalFuelCost: 45000,
-                totalMaintenanceCost: 12000,
-                fuelEfficiency: 18,
-            },
-            {
-                id: 2,
-                model: "Truck-05",
-                status: "active",
-                totalFuelCost: 98000,
-                totalMaintenanceCost: 40000,
-                fuelEfficiency: 9,
-            },
-            {
-                id: 3,
-                model: "Bike-02",
-                status: "maintenance",
-                totalFuelCost: 12000,
-                totalMaintenanceCost: 3000,
-                fuelEfficiency: 35,
-            },
-            {
-                id: 4,
-                model: "Trailer-XL",
-                status: "active",
-                totalFuelCost: 150000,
-                totalMaintenanceCost: 60000,
-                fuelEfficiency: 6,
-            },
-        ];
-
-        const dummyRisk = {
-            risk: 68,
-            level: "Moderate",
-            factors: {
-                expiredDrivers: 20,
-                vehiclesInShop: 15,
-                negativeROI: 18,
-                overdueMaintenance: 15,
-            },
-        };
-
-        setVehicles(dummyVehicles);
-        setDrivers([{ id: 1 }, { id: 2 }]);
-        setRisk(dummyRisk);
-        setLoading(false);
+        Promise.all([
+            getVehicles(),
+            getDrivers(),
+            getFleetRisk(),
+            getMetrics(),
+            getProfitMetrics(),
+            getProfitTrend()
+        ])
+            .then(([v, d, r, m, pm, pt]) => {
+                setVehicles(Array.isArray(v) ? v : []);
+                setDrivers(Array.isArray(d) ? d : []);
+                setRisk(r);
+                setMetrics(m);
+                setProfitMetrics(pm);
+                setProfitTrend(Array.isArray(pt) ? pt : []);
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }, []);
 
     // Vehicle status distribution for pie chart
@@ -108,41 +72,13 @@ export default function AnalyticsPage() {
                 .trim(),
             value: typeof value === "number" ? Math.round(value) : 0,
         })) : [];
-    // ===== Financial Calculations =====
+    // ===== Financial Data Mapping =====
 
-    // Total Fuel Cost
-    const totalFuelCost = vehicles.reduce(
-        (sum: number, v: any) => sum + (v.totalFuelCost || 0),
-        0
-    );
+    const totalFuelCost = profitMetrics?.totalFuelCost ?? 0;
+    const fleetROI = profitMetrics?.fleetROI ?? 0;
+    const utilizationRate = profitMetrics?.utilizationRate ?? 0;
 
-    // Total Maintenance Cost
-    const totalMaintenanceCost = vehicles.reduce(
-        (sum: number, v: any) => sum + (v.totalMaintenanceCost || 0),
-        0
-    );
-
-    // Simulated Revenue (if backend doesn’t provide)
-    const totalRevenue = vehicles.reduce(
-        (sum: number, v: any) => sum + (v.totalRevenue || 0),
-        0
-    );
-
-    // Fleet ROI
-    const fleetROI =
-        totalRevenue > 0
-            ? (((totalRevenue - totalFuelCost - totalMaintenanceCost) / totalRevenue) * 100).toFixed(1)
-            : 0;
-
-    // Utilization Rate
-    const activeVehicles = vehicles.filter(
-        (v: any) => v.status === "active"
-    ).length;
-
-    const utilizationRate =
-        vehicles.length > 0
-            ? ((activeVehicles / vehicles.length) * 100).toFixed(0)
-            : 0;
+    const monthlyData = profitTrend.length > 0 ? profitTrend : [];
 
 
     if (loading) {
@@ -160,26 +96,6 @@ export default function AnalyticsPage() {
         );
     }
 
-    const monthlyData = [
-        {
-            month: "Jan",
-            revenue: 300000,
-            fuel: 120000,
-            maintenance: 55000,
-        },
-        {
-            month: "Feb",
-            revenue: 280000,
-            fuel: 100000,
-            maintenance: 40000,
-        },
-        {
-            month: "Mar",
-            revenue: 350000,
-            fuel: 150000,
-            maintenance: 70000,
-        },
-    ];
 
     return (
         <div className="space-y-8">
@@ -239,7 +155,7 @@ export default function AnalyticsPage() {
                                     name: v.model || `#${v.id}`,
                                     cost:
                                         (v.totalFuelCost || 0) +
-                                        (v.totalMaintenanceCost || 0),
+                                        (v.totalMaintenance || 0),
                                 }))
                                 .sort((a: any, b: any) => b.cost - a.cost)
                                 .slice(0, 5)}
@@ -262,12 +178,12 @@ export default function AnalyticsPage() {
 
                 <DataTable
                     headers={["Month", "Revenue", "Fuel Cost", "Maintenance", "Net Profit"]}
-                    rows={monthlyData.map((m) => [
-                        m.month,
-                        `₹ ${m.revenue.toLocaleString()}`,
-                        `₹ ${m.fuel.toLocaleString()}`,
-                        `₹ ${m.maintenance.toLocaleString()}`,
-                        `₹ ${(m.revenue - m.fuel - m.maintenance).toLocaleString()}`,
+                    rows={monthlyData.map((m: any) => [
+                        m.month || m.date || "—",
+                        `₹ ${(m.revenue || 0).toLocaleString()}`,
+                        `₹ ${(m.fuel || 0).toLocaleString()}`,
+                        `₹ ${(m.maintenance || 0).toLocaleString()}`,
+                        `₹ ${((m.revenue || 0) - (m.fuel || 0) - (m.maintenance || 0)).toLocaleString()}`,
                     ])}
                 />
             </div>
