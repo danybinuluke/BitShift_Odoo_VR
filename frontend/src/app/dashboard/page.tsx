@@ -28,7 +28,7 @@ export default function DashboardPage() {
                     getVehicles(),
                     getDrivers(),
                     getTrips(),
-                    getFleetRisk(),
+                    getFleetRisk()
                 ]);
                 setVehicles(Array.isArray(v) ? v : []);
                 setDrivers(Array.isArray(d) ? d : []);

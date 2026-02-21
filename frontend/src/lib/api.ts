@@ -35,8 +35,10 @@ export async function getDrivers() {
 // ─── Trips ───────────────────────────────────────────
 
 export async function getTrips() {
-  const res = await fetch(`${BASE_URL}/trips`);
-  if (!res.ok) throw new Error("Failed to fetch trips");
+  const res = await fetch("http://localhost:5000/trip");
+  if (!res.ok) {
+    throw new Error("Failed to fetch trips");
+  }
   return res.json();
 }
 
