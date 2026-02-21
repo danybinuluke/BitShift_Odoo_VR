@@ -16,7 +16,8 @@ const app = express();
 app.get("/", (req, res) => {
     res.json({
         service: "FleetFlow Backend",
-        status: "Running",
+        status: "Production Running",
+        ai: "Connected",
         version: "1.0"
     });
 });
