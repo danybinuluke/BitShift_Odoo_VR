@@ -20,12 +20,15 @@ export default function VehiclesPage() {
     const [statusFilter, setStatusFilter] = useState("All");
     const [sortField, setSortField] = useState("model");
     const [groupBy, setGroupBy] = useState("none");
+    const [completingVehicle, setCompletingVehicle] = useState<any>(null);
+    const [fatigue, setFatigue] = useState(5);
+    const [odometer, setOdometer] = useState("");
 
     async function loadData() {
         setLoading(true);
         try {
-            const data = await getVehicles();
-            setVehicles(Array.isArray(data) ? data : []);
+            //const data = await getVehicles();
+            //setVehicles(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error(err);
         } finally {
@@ -34,7 +37,48 @@ export default function VehiclesPage() {
     }
 
     useEffect(() => {
-        loadData();
+        //loadData();
+        const dummyVehicles = [
+            {
+                id: 1,
+                licensePlate: "MH12AB1234",
+                model: "Van-01",
+                type: "Van",
+                capacity: "1000kg",
+                mileage: 24000,
+                status: "On Trip",
+            },
+            {
+                id: 2,
+                licensePlate: "DL08XY9876",
+                model: "Truck-05",
+                type: "Truck",
+                capacity: "5000kg",
+                mileage: 78000,
+                status: "Available",
+            },
+            {
+                id: 3,
+                licensePlate: "KA09LM4567",
+                model: "Bike-02",
+                type: "Bike",
+                capacity: "200kg",
+                mileage: 12000,
+                status: "Maintenance",
+            },
+            {
+                id: 4,
+                licensePlate: "TN22ZX1111",
+                model: "Trailer-XL",
+                type: "Trailer",
+                capacity: "8000kg",
+                mileage: 150000,
+                status: "On Trip",
+            },
+        ];
+
+        setVehicles(dummyVehicles);
+        setLoading(false);
     }, []);
 
     const handleDelete = async (id: number) => {
@@ -44,6 +88,30 @@ export default function VehiclesPage() {
             await loadData();
         } catch (err) {
             alert("Failed to delete vehicle");
+        }
+    };
+
+    const handleCompleteTrip = async () => {
+        if (!completingVehicle) return;
+
+        try {
+            setVehicles((prev) =>
+                prev.map((v) =>
+                    v.id === completingVehicle.id
+                        ? {
+                            ...v,
+                            status: "Available",
+                            mileage: (v.mileage || 0) + Number(odometer)
+                        }
+                        : v
+                )
+            );
+
+            setCompletingVehicle(null);
+            setFatigue(5);
+            setOdometer("");
+        } catch (err) {
+            console.error("Completion failed", err);
         }
     };
 
@@ -98,6 +166,19 @@ export default function VehiclesPage() {
             label={v.status || "Idle"}
         />,
         <div key={`act-${v.id}`} className="flex items-center gap-2">
+
+            {/* Complete Trip Button */}
+            {(v.status?.toLowerCase() === "on trip" ||
+                v.status?.toLowerCase() === "on_trip") && (
+                    <button
+                        onClick={() => setCompletingVehicle(v)}
+                        className="px-2 py-1 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition"
+                    >
+                        Complete
+                    </button>
+                )}
+
+            {/* Delete Button */}
             <button
                 onClick={() => handleDelete(v.id)}
                 className="p-1 px-2 rounded-md hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
@@ -105,6 +186,7 @@ export default function VehiclesPage() {
             >
                 <X className="w-4 h-4" />
             </button>
+
         </div>
     ]);
 
@@ -219,6 +301,62 @@ export default function VehiclesPage() {
                     )}
                 </Card>
             </div>
+            {completingVehicle && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-md space-y-4 shadow-lg">
+
+                        <h2 className="text-lg font-semibold">
+                            Complete Trip – {completingVehicle.model}
+                        </h2>
+
+                        {/* Fatigue Slider */}
+                        <div>
+                            <label className="block text-sm mb-1">
+                                Driver Fatigue (0–10)
+                            </label>
+                            <input
+                                type="range"
+                                min="0"
+                                max="10"
+                                value={fatigue}
+                                onChange={(e) => setFatigue(Number(e.target.value))}
+                                className="w-full"
+                            />
+                            <p className="text-sm text-gray-600 mt-1">{fatigue}</p>
+                        </div>
+
+                        {/* Odometer Input */}
+                        <div>
+                            <label className="block text-sm mb-1">
+                                New Odometer Reading
+                            </label>
+                            <input
+                                type="number"
+                                value={odometer}
+                                onChange={(e) => setOdometer(e.target.value)}
+                                className="w-full border rounded px-3 py-2 text-sm"
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setCompletingVehicle(null)}
+                                className="px-4 py-2 text-sm border rounded"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={handleCompleteTrip}
+                                className="px-4 py-2 text-sm bg-emerald-600 text-white rounded"
+                            >
+                                Submit
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            )}
         </AccessControl>
     );
 }
