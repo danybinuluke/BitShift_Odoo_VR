@@ -5,24 +5,36 @@ import { getVehicles, getDrivers, getFleetRisk } from "@/lib/api";
 import StatCard from "@/components/ui/StatCard";
 import FleetRiskCard from "@/components/dashboard/FleetRiskCard";
 import AlertsPanel from "@/components/dashboard/AlertsPanel";
+import { getTrips } from "@/lib/api";
+import DashboardTable from "@/components/dashboard/DashboardTable";
 
 export default function DashboardPage() {
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [drivers, setDrivers] = useState<any[]>([]);
     const [risk, setRisk] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [trips, setTrips] = useState<any[]>([]);
+
+    const dummyTrips = [
+        { id: "T001", vehicle: "Van-01", driver: "John Doe", status: "Dispatched" },
+        { id: "T002", vehicle: "Truck-05", driver: "Alex Kumar", status: "Cancelled" },
+        { id: "T003", vehicle: "Bike-02", driver: "Rahul", status: "Cancelled" },
+    ];
+
 
     useEffect(() => {
         async function load() {
             try {
-                const [v, d, r] = await Promise.all([
+                const [v, d, r, t] = await Promise.all([
                     getVehicles(),
                     getDrivers(),
                     getFleetRisk(),
+                    getTrips(),
                 ]);
                 setVehicles(Array.isArray(v) ? v : []);
                 setDrivers(Array.isArray(d) ? d : []);
                 setRisk(r);
+                setTrips(Array.isArray(t) ? t : []);
             } catch (err) {
                 console.error("Dashboard load error:", err);
             } finally {
@@ -100,6 +112,17 @@ export default function DashboardPage() {
 
             {/* Alerts */}
             <AlertsPanel alerts={alerts} loading={loading} />
+
+            {/* Recent Trips Table */}
+            <div className="rounded-xl bg-white p-6 shadow">
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        Recent Trips
+                    </h2>
+                </div>
+
+                <DashboardTable trips={dummyTrips} />
+            </div>
         </div>
     );
 }
