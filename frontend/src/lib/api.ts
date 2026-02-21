@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 // ─── Vehicles ────────────────────────────────────────
 
@@ -61,7 +61,7 @@ export async function createDriver(data: {
 // ─── Trips ───────────────────────────────────────────
 
 export async function getTrips() {
-  const res = await fetch("http://localhost:5000/trip");
+  const res = await fetch(`${BASE_URL}/trips`);
   if (!res.ok) {
     throw new Error("Failed to fetch trips");
   }

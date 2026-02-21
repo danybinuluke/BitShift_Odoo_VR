@@ -3,7 +3,9 @@ import {
     recommendAssignment,
     getFleetMetrics,
     getProfitMetrics,
-    getAIHealth
+    getAIHealth,
+    getProfitTrend,
+    getCostPerKm
 } from "../services/intelligence.service.js";
 
 
@@ -48,7 +50,8 @@ export const recommendAssignmentController =
             const {
                 vehicleId,
                 driverId,
-                cargoWeight
+                cargoWeight,
+                fatigueLevel
             } = req.body;
 
 
@@ -71,7 +74,8 @@ export const recommendAssignmentController =
                 await recommendAssignment(
                     vehicleId,
                     driverId,
-                    cargoWeight
+                    cargoWeight,
+                    fatigueLevel
                 );
 
 
@@ -171,6 +175,61 @@ export const aiHealthController = async (req, res) => {
     } catch (error) {
 
         console.error("AI Health Error:", error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+
+};
+
+// ===============================
+// Profit Trend Controller
+// ===============================
+export const profitTrendController = async (req, res) => {
+
+    try {
+
+        const result =
+            await getProfitTrend();
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+
+        console.error("Profit Trend Error:", error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+
+};
+
+
+export const costPerKmController = async (req, res) => {
+
+    try {
+
+        const vehicleId =
+            parseInt(req.params.vehicleId);
+
+        const result =
+            await getCostPerKm(vehicleId);
+
+        res.json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
 
         res.status(500).json({
             success: false,
