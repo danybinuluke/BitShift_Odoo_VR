@@ -67,7 +67,7 @@ export const recommendAssignment =
 
         // Call AI service
         const aiResponse = await fetch(
-            "http://127.0.0.1:8000/predict-driver-risk",
+            "https://fleetflow-ai.onrender.com/predict-driver-risk",
             {
                 method: "POST",
                 headers: {
