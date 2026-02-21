@@ -65,36 +65,59 @@ export const recommendAssignment =
             throw new Error("Vehicle or Driver not found");
 
 
+        // Call AI service
+        const aiResponse = await fetch(
+            "http://127.0.0.1:8000/predict-driver-risk",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    safetyScore: driver.safetyScore,
+                    tripsCompleted: 100,
+                    fatigueLevel: 2
+                })
+            }
+        );
+
+        const aiResult = await aiResponse.json();
+
+        const aiRiskLevel = aiResult.riskLevel;
+
+
         const capacityScore =
             1 - (cargoWeight / vehicle.capacity);
 
         const safetyScore =
             driver.safetyScore / 100;
 
-        const utilizationPenalty =
-            vehicle.status === "OnTrip" ? 0.2 : 0;
+        const baseScore =
+            (0.6 * capacityScore) +
+            (0.4 * safetyScore);
 
 
-        const intelligenceScore =
-            (0.5 * capacityScore)
-            + (0.4 * safetyScore)
-            - utilizationPenalty;
+        let finalScore = baseScore;
+
+        if (aiRiskLevel === "HIGH")
+            finalScore -= 0.3;
+        else if (aiRiskLevel === "MEDIUM")
+            finalScore -= 0.1;
 
 
         let recommendation = "Risky";
 
-        if (intelligenceScore > 0.75)
+        if (finalScore > 0.75)
             recommendation = "Optimal";
-        else if (intelligenceScore > 0.4)
+        else if (finalScore > 0.4)
             recommendation = "Moderate";
 
 
         return {
             intelligenceScore:
-                Number(intelligenceScore.toFixed(2)),
+                Number(finalScore.toFixed(2)),
             recommendation,
-            vehicleStatus: vehicle.status,
-            driverSafetyScore: driver.safetyScore
+            aiRiskLevel
         };
     };
 
