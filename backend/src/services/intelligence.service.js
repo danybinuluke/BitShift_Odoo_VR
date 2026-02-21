@@ -1,0 +1,179 @@
+import prisma from "../config/prisma.js";
+
+
+// ===============================
+// 1. Fleet Risk Engine
+// ===============================
+export const calculateFleetRisk = async () => {
+
+    const vehiclesInShop =
+        await prisma.vehicle.count({
+            where: { status: "Maintenance" }
+        });
+
+    const expiredDrivers =
+        await prisma.driver.count({
+            where: {
+                licenseExpiry: {
+                    lt: new Date()
+                }
+            }
+        });
+
+    const totalVehicles =
+        await prisma.vehicle.count();
+
+    const riskScore =
+        vehiclesInShop * 5
+        + expiredDrivers * 10;
+
+    let riskLevel = "Low";
+
+    if (riskScore > 50)
+        riskLevel = "High";
+    else if (riskScore > 20)
+        riskLevel = "Moderate";
+
+    return {
+        riskScore,
+        riskLevel,
+        vehiclesInShop,
+        expiredDrivers,
+        totalVehicles
+    };
+};
+
+
+
+// ===============================
+// 2. Smart Assignment Engine
+// ===============================
+export const recommendAssignment =
+    async (vehicleId, driverId, cargoWeight) => {
+
+        const vehicle =
+            await prisma.vehicle.findUnique({
+                where: { id: vehicleId }
+            });
+
+        const driver =
+            await prisma.driver.findUnique({
+                where: { id: driverId }
+            });
+
+        if (!vehicle || !driver)
+            throw new Error("Vehicle or Driver not found");
+
+
+        const capacityScore =
+            1 - (cargoWeight / vehicle.capacity);
+
+        const safetyScore =
+            driver.safetyScore / 100;
+
+        const utilizationPenalty =
+            vehicle.status === "OnTrip" ? 0.2 : 0;
+
+
+        const intelligenceScore =
+            (0.5 * capacityScore)
+            + (0.4 * safetyScore)
+            - utilizationPenalty;
+
+
+        let recommendation = "Risky";
+
+        if (intelligenceScore > 0.75)
+            recommendation = "Optimal";
+        else if (intelligenceScore > 0.4)
+            recommendation = "Moderate";
+
+
+        return {
+            intelligenceScore:
+                Number(intelligenceScore.toFixed(2)),
+            recommendation,
+            vehicleStatus: vehicle.status,
+            driverSafetyScore: driver.safetyScore
+        };
+    };
+
+
+
+// ===============================
+// 3. Fleet Performance Metrics
+// ===============================
+export const getFleetMetrics = async () => {
+
+    const totalVehicles =
+        await prisma.vehicle.count();
+
+    const activeVehicles =
+        await prisma.vehicle.count({
+            where: { status: "OnTrip" }
+        });
+
+    const totalDrivers =
+        await prisma.driver.count();
+
+    const totalTrips =
+        await prisma.trip.count();
+
+    const utilization =
+        totalVehicles === 0
+            ? 0
+            : (activeVehicles / totalVehicles) * 100;
+
+    return {
+        totalVehicles,
+        activeVehicles,
+        totalDrivers,
+        totalTrips,
+        utilization:
+            Number(utilization.toFixed(2))
+    };
+};
+
+
+
+// ===============================
+// 4. Profit Intelligence Engine
+// ===============================
+export const getProfitMetrics = async () => {
+
+    const trips =
+        await prisma.trip.findMany();
+
+    let totalRevenue = 0;
+    let totalFuelCost = 0;
+    let totalMaintenanceCost = 0;
+
+    trips.forEach(trip => {
+
+        totalRevenue += trip.revenue;
+        totalFuelCost += trip.fuelCost;
+        totalMaintenanceCost += trip.maintenanceCost;
+
+    });
+
+    const totalCost =
+        totalFuelCost + totalMaintenanceCost;
+
+    const profit =
+        totalRevenue - totalCost;
+
+    const profitMargin =
+        totalRevenue === 0
+            ? 0
+            : (profit / totalRevenue) * 100;
+
+    return {
+
+        totalRevenue,
+        totalCost,
+        profit,
+        profitMargin:
+            Number(profitMargin.toFixed(2))
+
+    };
+};
